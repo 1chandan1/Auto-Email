@@ -1,0 +1,40 @@
+name: Create EXE
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  build:
+    runs-on: windows-latest  # Use a Windows runner with Node.js 16
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.0  # Specify the Python version you need
+          architecture: x64  # Use x64 or x86 based on your requirements
+
+      - name: Install Dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+        working-directory: ./  # Modify this path
+
+      - name: Create .env File
+        run: echo 'CLIENT_SECRET=${{secrets.CLIENT_SECRET}}' > .env
+
+      - name: Build EXE
+        run: |
+          pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data ".env:." --add-data "template.docx:." --distpath ./output "auto_email.py"
+
+        working-directory: ./  # Modify this path
+      - name: Copy EXE to GitHub workspace
+        run: |
+          git config --global user.email "chandanhans2003@gmail.com"
+          git config --global user.name "1chandan1"
+          git add ./
+          git commit -m "AutoEmail.exe"
+          git push
