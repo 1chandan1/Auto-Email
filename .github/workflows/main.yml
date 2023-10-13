@@ -1,7 +1,9 @@
 name: Create EXE
 
 on:
-  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches:
+      - main  # Adjust to your branch name
 
 jobs:
   build:
