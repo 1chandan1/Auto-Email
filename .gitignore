@@ -4,3 +4,4 @@
 /output/secret_token.pickle
 /.env
 /client_secret.json
+/invoice

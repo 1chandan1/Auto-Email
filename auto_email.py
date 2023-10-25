@@ -521,33 +521,39 @@ def facturation():
     print()
     print_center("-------------------  Facturation  -------------------")
     print()
-    try:
-        row = int(input(f"Enter Row ( 0 : quit ) : "))
+    user_input = input(f"Enter a list of rows separated by commas ( 0 : quit ) : ")
+    input_list = user_input.split(",")
+    for item in input_list:
+        item = item.strip()
+        try:
+            row = int(item)
+        except:
+            print("Invalid input. Please enter only integers separated by commas.")
+            continue
         if row == 0:
             return
-        print("\nCreating Draft...")
-        spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
-        worksheet = spreadsheet.get_worksheet(0)
-        row_value = worksheet.row_values(row)
-        person_full_name = row_value[1]
-        facture_number = row_value[16]
-        ht = row_value[17]
-        tva = row_value[18]
-        tcc = row_value[19]
-        message = create_facture_message(user.email, "", person_full_name)
-        status = create_draft(message)
-        if status:
-            print("\nCreating Invoice...")
-            create_facture_files(
-                person_full_name, facture_number, ht, tva, tcc)
-            input("\n\nSuccess    ")
-        else:
-            input("\n\nError      ")
-        facturation()
-    except Exception as e:
-        print(f"ERROR : {e}")
-        input("\nPress Enter to Continue :")
-        facturation()
+        try:
+            print(f"\n\nCreating Draft for row {row}")
+            spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
+            worksheet = spreadsheet.get_worksheet(0)
+            row_value = worksheet.row_values(row)
+            person_full_name = row_value[1]
+            facture_number = row_value[16]
+            ht = row_value[17]
+            tva = row_value[18]
+            tcc = row_value[19]
+            message = create_facture_message(user.email, "", person_full_name)
+            status = create_draft(message)
+            if status:
+                print(f"Creating Invoice for row {row}")
+                create_facture_files(person_full_name, facture_number, ht, tva, tcc)
+                print(f"{row} Success")
+            else:
+                print(f"{row} Error")
+        except Exception as e:
+            print(f"{row} ERROR : {e}")
+    input("\n\nPress Enter to Continue :")
+    facturation()
 
 
 def main():
