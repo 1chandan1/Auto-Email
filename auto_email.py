@@ -262,7 +262,7 @@ def create_facture_message(sender: str, to: str, person_full_name: str):
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
 
 
-def create_facture_files(name, facture_number, ht, tva, tcc):
+def create_facture_files(name, facture_number, ht, tva, tcc, paid_date):
     if not os.path.exists("Invoice"):
         os.makedirs("Invoice")
     doc = Document(resource_path("template.docx"))
@@ -275,6 +275,7 @@ def create_facture_files(name, facture_number, ht, tva, tcc):
         "(R)": ht,
         "(S)": tva,
         "(T)": tcc,
+        "(W)": paid_date,
     }
 
     def modify_run(run):
@@ -542,11 +543,16 @@ def facturation():
             ht = row_value[17]
             tva = row_value[18]
             tcc = row_value[19]
+            try:
+                paid_date = datetime.strptime(row_value[22], '%d/%m/%Y').strftime('%d %B %Y')
+            except:
+                print("No Paiement Date")
+                paid_date = ""
             message = create_facture_message(user.email, "", person_full_name)
             status = create_draft(message)
             if status:
                 print(f"Creating Invoice for row {row}")
-                create_facture_files(person_full_name, facture_number, ht, tva, tcc)
+                create_facture_files(person_full_name, facture_number, ht, tva, tcc, paid_date)
                 print(f"{row} Success")
             else:
                 print(f"{row} Error")
