@@ -1,6 +1,5 @@
 import base64
 import json
-import locale
 import msvcrt
 import os
 import pickle
