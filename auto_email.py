@@ -20,10 +20,10 @@ from docx2pdf import convert
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
 from gspread.exceptions import SpreadsheetNotFound
 from unidecode import unidecode
 from dotenv import load_dotenv
-
 
 
 class GoogleServices:
@@ -104,9 +104,12 @@ class GoogleServices:
 
         # If there are no (valid) credentials available, let the user log in
         if not self.creds or not self.creds.valid:
-            # Use the JSON file containing your OAuth2 credentials
-            flow = InstalledAppFlow.from_client_config(client_secret_info, self.SCOPES)
-            self.creds = flow.run_local_server(port=0)
+            try:
+                self.creds.refresh(Request())
+            except:
+                # Use the JSON file containing your OAuth2 credentials
+                flow = InstalledAppFlow.from_client_config(client_secret_info, self.SCOPES)
+                self.creds = flow.run_local_server(port=0)
 
             # Save the credentials for the next run
             with open('secret_token.pickle', 'wb') as token:
@@ -120,7 +123,7 @@ class GoogleServices:
 
     def get_interns(self):
         gc = gspread.authorize(self.creds)
-        spreadsheet = gc.open_by_key(self.INTERN_SHEET_KEY)
+        spreadsheet = gc.open_by_key(self.INTERN_SHEET_KEY) 
         worksheet = spreadsheet.get_worksheet(0)
 
         interns_data = worksheet.get_all_records()
@@ -147,6 +150,43 @@ class GoogleServices:
             </div>'''
 
 
+def get_filled_row_values(worksheet , row_number):
+    merged_ranges = worksheet.spreadsheet.fetch_sheet_metadata()['sheets'][0]['merges']
+    row_values = worksheet.row_values(row_number)
+    
+    # Determine the maximum column index in merged_ranges
+    max_col_index = max(merge['endColumnIndex'] for merge in merged_ranges)
+    # Extend row_values to cover the entire range of columns
+    row_values.extend([''] * (max_col_index - len(row_values)))
+    
+    # Process each merged range
+    for merge in merged_ranges:
+        # If the merge affects the row in question
+        if merge['startRowIndex'] < row_number <= merge['endRowIndex']:
+            # Get the value from the first cell of the merged range
+            start_col_index = merge['startColumnIndex']
+            end_col_index = merge['endColumnIndex']
+            merged_value = worksheet.cell(row_number, start_col_index + 1).value
+
+            # Apply this value to all cells in the merged range within the row
+            for col_index in range(start_col_index, end_col_index):
+                row_values[col_index] = merged_value
+
+    return row_values
+
+def find_column_index(primary_header_row, secondary_header_row, target_secondary_heading, target_primary_heading=None):
+    # Iterate over both header rows simultaneously
+    for index, (primary, secondary) in enumerate(zip(primary_header_row, secondary_header_row)):
+        # Check if the current column's secondary header matches the target
+        if secondary == target_secondary_heading:
+            # If a primary header is specified, check for a match; otherwise, return the current index
+            if target_primary_heading is None or primary == target_primary_heading:
+                return index
+
+    # Return None if no matching column is found
+    return None
+
+    
 def get_row_by_name(first_name : str ,last_name : str):
     pattern = r'[ ,\-\n]'
     first_name = unidecode(re.sub(pattern, '', first_name)).lower()
@@ -266,7 +306,6 @@ def create_facture_files(name, facture_number, ht, tva, tcc, paid_date):
     if not os.path.exists("Invoice"):
         os.makedirs("Invoice")
     doc = Document(resource_path("template.docx"))
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
     date = datetime.now().date().strftime('%d %B %Y')
     text_replacements = {
         "(DATE)": date,
@@ -340,8 +379,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 notary_first_name, notary_last_name)
             if not notary_sheet_index:
                 worksheet.update_cell(index, 12, "New Notary added")
-                first_col = notary_worksheet.col_values(
-                    2)  # Get all values in the first column
+                first_col = notary_worksheet.col_values(2)  # Get all values in the first column
 
                 notary_sheet_row = ["", notary_first_name, notary_last_name, "", "",
                                     "", row[5], row[6], row[8], row[7], "Not contacted", "-", "-", "-"]
@@ -483,35 +521,43 @@ def notary_email():
 def client_email():
     clear_display()
     print("\n")
-    print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+    print_center(f"-------------------  Account : {user.email}  -------------------")
     print()
     print_center("-------------------  Client Email  -------------------")
     print()
-    try:
-        row = int(input(f"Enter Row ( 0 : quit ) : "))
-        if row == 0:
+    user_input = input(f"Enter a list of rows separated by commas ( 0 : quit ) : ")
+    input_list = user_input.split(",")
+    spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
+    worksheet = spreadsheet.get_worksheet(0)
+    row_value = worksheet.row_values(row)
+    primary_header_row = get_filled_row_values(worksheet,4)
+    secondary_header_row = get_filled_row_values(worksheet,5)
+    for item in input_list:
+        item = item.strip()
+        try:
+            row = int(item)
+        except:
+            print("Invalid input. Please enter only integers separated by commas.")
+            continue
+        if row <= 5:
             return
-        print("\nCreating Draft...")
-        spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
-        worksheet = spreadsheet.get_worksheet(0)
-        row_value = worksheet.row_values(row)
-        person_full_name = row_value[1]
-        amount_found_by_us = row_value[2]
-        amount_with_tex = row_value[9]
-        amount_after_fee = row_value[10]
-        message = create_client_message(
-            user.email, "", person_full_name, amount_found_by_us, amount_with_tex, amount_after_fee)
-        status = create_draft(message)
-        if status:
-            input("\nSuccess    ")
-        else:
-            input("\nError      ")
-        client_email()
-    except Exception as e:
-        print(f"ERROR : {e}")
-        input("\nPress Enter to Continue :")
-        client_email()
+        try:
+            print(f"\n\nCreating Draft for row {row}")
+            person_full_name = row_value[find_column_index(primary_header_row, secondary_header_row,"Nom/Prénom")]
+            amount_found_by_us = row_value[find_column_index(primary_header_row, secondary_header_row,"Somme retrouvée")]
+            amount_with_tex = row_value[find_column_index(primary_header_row, secondary_header_row,"Commission TTC (notaire déj payé)")]
+            amount_after_fee = row_value[find_column_index(primary_header_row, secondary_header_row,"Somme à verser (incl cas spécifique EON)")]
+            message = create_client_message(user.email, "", person_full_name, amount_found_by_us, amount_with_tex, amount_after_fee)
+            status = create_draft(message)
+            if status:
+                input("\nSuccess    ")
+            else:
+                input("\nError      ")
+            client_email()
+        except Exception as e:
+            print(f"ERROR : {e}")
+    input("\nPress Enter to Continue :")
+    client_email()
 
 
 def facturation():
@@ -524,6 +570,10 @@ def facturation():
     print()
     user_input = input(f"Enter a list of rows separated by commas ( 0 : quit ) : ")
     input_list = user_input.split(",")
+    spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
+    worksheet = spreadsheet.get_worksheet(0)
+    primary_header_row = get_filled_row_values(worksheet,4)
+    secondary_header_row = get_filled_row_values(worksheet,5)
     for item in input_list:
         item = item.strip()
         try:
@@ -531,20 +581,18 @@ def facturation():
         except:
             print("Invalid input. Please enter only integers separated by commas.")
             continue
-        if row == 0:
+        if row <= 5:
             return
         try:
             print(f"\n\nCreating Draft for row {row}")
-            spreadsheet = gc.open_by_key(INVOICE_SHEET_KEY)
-            worksheet = spreadsheet.get_worksheet(0)
             row_value = worksheet.row_values(row)
-            person_full_name = row_value[1]
-            facture_number = row_value[16]
-            ht = row_value[17]
-            tva = row_value[18]
-            tcc = row_value[19]
+            person_full_name = row_value[find_column_index(primary_header_row, secondary_header_row,"Nom/Prénom")]
+            facture_number = row_value[find_column_index(primary_header_row, secondary_header_row,"# Factures LD","LD")]
+            ht = row_value[find_column_index(primary_header_row, secondary_header_row,"Commission HT","LD")]
+            tva = row_value[find_column_index(primary_header_row, secondary_header_row,"TVA Commission","LD")]
+            tcc = row_value[find_column_index(primary_header_row, secondary_header_row,"Commission TTC","LD")]
             try:
-                paid_date = datetime.strptime(row_value[22], '%d/%m/%Y').strftime('%d %B %Y')
+                paid_date = datetime.strptime(row_value[find_column_index(primary_header_row, secondary_header_row,"Date paiement","LD")], '%d/%m/%Y').strftime('%d %B %Y')
             except:
                 print("No Paiement Date")
                 paid_date = ""
@@ -607,6 +655,7 @@ if __name__ == "__main__":
     try:
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
+        
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
         main()
