@@ -654,6 +654,7 @@ INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 if __name__ == "__main__":
     check_for_updates()
     countdown("Running the latest version.", 3)
+    print("new")
     try:
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
