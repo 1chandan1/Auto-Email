@@ -12,6 +12,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
+from checkversion import check_for_updates
 
 import gspread
 from docx import Document
@@ -651,10 +652,11 @@ except:
 NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 if __name__ == "__main__":
+    check_for_updates()
+    input("next :")
     try:
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
-        
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
         main()
