@@ -58,7 +58,7 @@ def check_for_updates():
     # Calculate the difference in time
     time_difference = remote_version_date - local_version_date
 
-    # Check if the difference is greater than 5 minutes
+    # Check if the difference is greater than 2 minutes
     if time_difference > datetime.timedelta(minutes=2):
         print(f"Update available. Initiating update...")
         new_exe_path = download_new_version()
