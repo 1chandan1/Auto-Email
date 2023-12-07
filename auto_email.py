@@ -1,5 +1,6 @@
 import base64
 import json
+import locale
 import msvcrt
 import os
 import pickle
@@ -651,6 +652,7 @@ except:
 
 NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
+locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
     check_for_updates()
     countdown("Running the latest version.", 3)
