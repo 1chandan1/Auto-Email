@@ -655,7 +655,7 @@ INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
     check_for_updates()
-    countdown("Running the latest version.", 3)
+    print("Running the latest version.")
     try:
         user = GoogleServices()
         gc = gspread.authorize(user.creds)

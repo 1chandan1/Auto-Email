@@ -11,8 +11,8 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # Constants
-REPO_API_URL = 'https://api.github.com/repos/1chandan1/Auto-email/commits?path=output/AutoEmail.exe'
 GITHUB_EXE_URL = 'https://raw.githubusercontent.com/1chandan1/Auto-email/main/output/AutoEmail.exe'
+REPO_API_URL = 'https://api.github.com/repos/1chandan1/Auto-email/commits?path=output/AutoEmail.exe'
 LOCAL_VERSION_PATH = resource_path("version.txt")  # Path to the local version file
 EXE_PATH = sys.executable
 UPDATER_EXE_PATH = resource_path("updater.exe")  # The path to your updater executable
@@ -31,21 +31,6 @@ def get_remote_version_date():
         return None
     return datetime.datetime.strptime(commits[0]['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ')
 
-def initiate_update(new_exe_path):
-    """Initiate the update process by running the updater executable."""
-    print("Initiating update...")
-    subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, new_exe_path])
-    sys.exit()  # Exit the main application to allow the updater to run
-
-def download_new_version():
-    """Download the new version and save it as a new file."""
-    print("Downloading new version...")
-    response = requests.get(GITHUB_EXE_URL)
-    new_exe_path = "AutoEmail_new.exe"
-    with open(new_exe_path, "wb") as file:
-        file.write(response.content)
-    return new_exe_path
-
 def check_for_updates():
     """Check if an update is available based on the latest commit date."""
     print("Checking for updates...")
@@ -54,12 +39,10 @@ def check_for_updates():
 
     if remote_version_date is None:
         return
-    
     # Calculate the difference in time
     time_difference = remote_version_date - local_version_date
-
     # Check if the difference is greater than 2 minutes
     if time_difference > datetime.timedelta(minutes=2):
-        print(f"Update available. Initiating update...")
-        new_exe_path = download_new_version()
-        initiate_update(new_exe_path)
+        subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, GITHUB_EXE_URL])
+        sys.exit()
+check_for_updates()
