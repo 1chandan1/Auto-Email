@@ -45,4 +45,3 @@ def check_for_updates():
     if time_difference > datetime.timedelta(minutes=2):
         subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, GITHUB_EXE_URL])
         sys.exit()
-check_for_updates()
