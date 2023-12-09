@@ -654,6 +654,7 @@ NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
+    print("new")
     check_for_updates()
     print("Running the latest version.")
     try:
