@@ -41,27 +41,26 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            const tag = 'EXE';
+            const tag = 'EXE';  // Replace with your specific tag
+            let uploadUrl = '';
             try {
               const response = await github.rest.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 tag: tag
               });
-              return response.data.upload_url;
+              uploadUrl = response.data.upload_url;
             } catch (error) {
-              const newRelease = await github.rest.repos.createRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag_name: tag,
-                name: 'EXE Release'
-              });
-              return newRelease.data.upload_url;
+              console.log(`Release with tag ${tag} not found`);
             }
+            return uploadUrl;
 
 
       - name: Upload EXE to Release
+        if: steps.get_release.outputs.result != ''
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.result }}
           asset_path: ./output/AutoEmail.exe
