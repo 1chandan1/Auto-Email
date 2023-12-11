@@ -50,6 +50,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ env.UPLOAD_URL }}
-          asset_path: ./output/AutoEmail.exe
+          asset_path: ./output/AutoEmail.exe #
           asset_name: AutoEmail.exe
           asset_content_type: application/octet-stream
