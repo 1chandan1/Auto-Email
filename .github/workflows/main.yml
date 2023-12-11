@@ -10,14 +10,14 @@ jobs:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      # - name: Checkout Code
+      #   uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11.0  # Specify the Python version you need
-          architecture: x64  # Use x64 or x86 based on your requirements
+      # - name: Set up Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: 3.11.0  # Specify the Python version you need
+      #     architecture: x64  # Use x64 or x86 based on your requirements
 
       # - name: Install Dependencies
       #   run: |
@@ -42,7 +42,48 @@ jobs:
       - name: Manage Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python manage_release.py ${{ github.repository }} EXE
+        run: |
+          import requests
+          import os
+
+          repo = "${{ github.repository }}"
+          tag = "EXE"
+          token = os.environ['GITHUB_TOKEN']
+
+          # Function to get release ID
+          def get_release_id():
+              url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
+              headers = {'Authorization': f'token {token}'}
+              response = requests.get(url, headers=headers)
+              if response.status_code == 200:
+                  return response.json()['id']
+              else:
+                  print(f"Error fetching release: {response.status_code}")
+                  return None
+
+          # Function to delete release assets
+          def delete_release_assets(release_id):
+              url = f"https://api.github.com/repos/{repo}/releases/{release_id}/assets"
+              headers = {'Authorization': f'token {token}'}
+              response = requests.get(url, headers=headers)
+              if response.status_code == 200:
+                  assets = response.json()
+                  for asset in assets:
+                      delete_url = f"https://api.github.com/repos/{repo}/releases/assets/{asset['id']}"
+                      delete_response = requests.delete(delete_url, headers=headers)
+                      if delete_response.status_code == 204:
+                          print(f"Deleted asset {asset['id']}")
+                      else:
+                          print(f"Error deleting asset {asset['id']}: {delete_response.status_code}")
+              else:
+                  print(f"Error fetching assets: {response.status_code}")
+
+          # Main execution
+          release_id = get_release_id()
+          if release_id:
+              delete_release_assets(release_id)
+          else:
+              print("Release not found.")
 
       # - name: Create Release
       #   id: create_release
