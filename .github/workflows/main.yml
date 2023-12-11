@@ -40,7 +40,7 @@ jobs:
         id: get_release
         uses: octokit/request-action@v2.x
         with:
-          route: GET /repos/{owner}/{repo}/releases/tags/EXE
+          route: GET /repos/1chandan1/Auto-email/releases/tags/EXE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
