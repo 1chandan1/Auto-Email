@@ -1,0 +1,43 @@
+name: Create EXE
+
+on:
+  push:
+    branches:
+      - main  # Adjust to your branch name
+
+jobs:
+  build:
+    runs-on: windows-latest  # Use a Windows runner with Node.js 16
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.0  # Specify the Python version you need
+          architecture: x64  # Use x64 or x86 based on your requirements
+
+      - name: Install Dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+        working-directory: ./  # Modify this path
+
+      - name: Create .env File
+        run: echo 'CLIENT_SECRET=${{secrets.CLIENT_SECRET}}' > .env
+
+      - name: Create Version File
+        run: python -c "import datetime; print(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'))" > version.txt
+        
+      - name: Build EXE
+        run: |
+          pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
+        working-directory: ./  # Modify this path
+
+      - name: Upload EXE as Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: AutoEmail-EXE
+          path: ./output/AutoEmail.exe
