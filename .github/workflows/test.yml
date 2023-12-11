@@ -36,33 +36,24 @@ jobs:
           pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
         working-directory: ./  # Modify this path
 
-      - name: Get Release by Tag
-        id: get_release
-        uses: actions/github-script@v5
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          script: |
-            const tag = 'EXE';  // Replace with your specific tag
-            let uploadUrl = '';
-            try {
-              const response = await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: tag
-              });
-              uploadUrl = response.data.upload_url;
-            } catch (error) {
-              console.log(`Release with tag ${tag} not found`);
-            }
-            return uploadUrl;
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
 
 
       - name: Upload EXE to Release
-        if: steps.get_release.outputs.result != ''
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.result }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./output/AutoEmail.exe
           asset_name: AutoEmail.exe
           asset_content_type: application/octet-stream
