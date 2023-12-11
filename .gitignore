@@ -1,4 +1,5 @@
 /secret_token.pickle
 /.env
+/.venv
 /invoice
-/output/AutoEmail.exe
+/output
