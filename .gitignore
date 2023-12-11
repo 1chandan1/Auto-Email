@@ -1,7 +1,4 @@
 /secret_token.pickle
 /.env
-/client_secret.json
 /invoice
-/version.txt
-/build
-/AutoEmail.spec
+/output/AutoEmail.exe

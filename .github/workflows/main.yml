@@ -40,6 +40,6 @@ jobs:
         run: |
           git config --global user.email "chandanhans2003@gmail.com"
           git config --global user.name "1chandan1"
-          git add ./
-          git commit -m "AutoEmail.exe"
+          git add -f ./output/AutoEmail.exe  # Force add the AutoEmail.exe
+          git commit -m "Update AutoEmail.exe"
           git push
