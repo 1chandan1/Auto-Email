@@ -40,7 +40,7 @@ jobs:
         id: get_release
         uses: octokit/request-action@v2.x
         with:
-          route: GET /repos/1chandan1/Auto-email/releases/tags/EXE
+          route: GET /repos/${{ github.repository }}/releases/tags/EXE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,6 +52,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             ${{ fromJson(steps.get_release.outputs.data).assets[0].url }}
         if: steps.get_release.outputs.data
+        continue-on-error: true
 
       - name: Upload New EXE to Release
         run: |
