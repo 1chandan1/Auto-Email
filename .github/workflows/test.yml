@@ -40,14 +40,18 @@ jobs:
         id: get_release
         uses: actions/github-script@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const release = await github.repos.getReleaseByTag({
+            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+            octokit.repos.getReleaseByTag({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                tag: 'EXE'  # Replace with your tag
-            }).catch(() => null);
-            return release ? release.data.upload_url : '';
+                tag: 'EXE'
+            }).then(release => {
+                core.setOutput('upload_url', release.data.upload_url);
+            }).catch(() => {
+                core.setOutput('upload_url', '');
+            });
       
       - name: Create Release if Not Exists
         if: steps.get_release.outputs.result == ''
