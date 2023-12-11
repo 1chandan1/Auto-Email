@@ -39,12 +39,13 @@ jobs:
       - name: Fetch Release ID
         id: get_release_id
         run: |
-          echo "RELEASE_ID=$(curl -X GET -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.tag_name == \"EXE\") | .id')" >> $GITHUB_ENV
+          echo "RELEASE_ID=$(curl -X GET -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/releases/tags/EXE | jq -r '.id')" >> $GITHUB_ENV
 
-      - name: Delete Old Release
-        if: env.RELEASE_ID != ''
+      - name: Delete All Assets from Release
         run: |
-          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}
+          for asset_id in $(curl -X GET -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}/assets" | jq -r '.[].id'); do
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+          done
 
       # - name: Create Release
       #   id: create_release
