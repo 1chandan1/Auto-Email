@@ -36,11 +36,16 @@ jobs:
       #     pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
       #   working-directory: ./  # Modify this path
 
-      - name: Delete Old Releases
+      - name: Fetch Release ID
+        id: get_release_id
         run: |
-          curl -X GET -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.tag_name == "EXE") | .id' | xargs -I {} curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/{}
-      
-      
+          echo "RELEASE_ID=$(curl -X GET -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.tag_name == \"EXE\") | .id')" >> $GITHUB_ENV
+
+      - name: Delete Old Release
+        if: env.RELEASE_ID != ''
+        run: |
+          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}
+
       # - name: Create Release
       #   id: create_release
       #   uses: actions/create-release@v1
