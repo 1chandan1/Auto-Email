@@ -37,10 +37,10 @@ jobs:
         working-directory: ./  # Modify this path
 
       - name: Get Release Upload URL
-        id: get_release
         run: |
           $UPLOAD_URL = gh release view EXE --json uploadUrl -q .upload_url
           echo "UPLOAD_URL=$UPLOAD_URL" | Out-File -Append -FilePath $env:GITHUB_ENV
+        shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
