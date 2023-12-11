@@ -11,11 +11,11 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # Constants
-GITHUB_EXE_URL = 'https://raw.githubusercontent.com/1chandan1/Auto-email/main/output/AutoEmail.exe'
-REPO_API_URL = 'https://api.github.com/repos/1chandan1/Auto-email/commits?path=output/AutoEmail.exe'
+GITHUB_EXE_URL = 'https://github.com/1chandan1/Auto-email/releases/download/EXE/AutoEmail.exe'
+RELEASES_API_URL = 'https://api.github.com/repos/1chandan1/Auto-email/releases/tags/EXE'
 LOCAL_VERSION_PATH = resource_path("version.txt")  # Path to the local version file
-EXE_PATH = sys.executable
 UPDATER_EXE_PATH = resource_path("updater.exe")  # The path to your updater executable
+EXE_PATH = sys.executable
 
 def get_local_version_date():
     """Read the version date from the local version file."""
@@ -23,13 +23,12 @@ def get_local_version_date():
         return datetime.datetime.strptime(file.read().strip(), '%Y-%m-%dT%H:%M:%SZ')
 
 def get_remote_version_date():
-    """Fetch the latest commit date of the version file from the GitHub repository."""
-    response = requests.get(REPO_API_URL)
-    commits = response.json()
-    if not commits:
-        print("No commits found for the version file.")
-        return None
-    return datetime.datetime.strptime(commits[0]['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ')
+    """Fetch the release date of AutoEmail.exe from the GitHub repository releases."""
+    response = requests.get(RELEASES_API_URL)
+    release_data = response.json()
+    release_date_str = release_data['published_at']  # Get the publication date of the release
+    return datetime.datetime.strptime(release_date_str, '%Y-%m-%dT%H:%M:%SZ')
+
 
 def check_for_updates():
     """Check if an update is available based on the latest commit date."""

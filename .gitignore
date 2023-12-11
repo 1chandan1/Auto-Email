@@ -1,9 +1,5 @@
-/build/
-/AutoEmail.spec
 /secret_token.pickle
-/output/secret_token.pickle
 /.env
 /client_secret.json
 /invoice
 /version.txt
-/__pycache__
