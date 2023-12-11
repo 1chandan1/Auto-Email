@@ -1,4 +1,4 @@
-name: Create EXE
+name: Update EXE in Release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main  # Adjust to your branch name
 
 jobs:
-  build:
+  build-and-update-release:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
 
     steps:
@@ -26,7 +26,7 @@ jobs:
         working-directory: ./  # Modify this path
 
       - name: Create .env File
-        run: echo 'CLIENT_SECRET=${{secrets.CLIENT_SECRET}}' > .env
+        run: echo 'CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}' > .env
 
       - name: Create Version File
         run: python -c "import datetime; print(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'))" > version.txt
@@ -34,12 +34,26 @@ jobs:
       - name: Build EXE
         run: |
           pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
-
         working-directory: ./  # Modify this path
-      - name: Copy EXE to GitHub workspace
-        run: |
-          git config --global user.email "chandanhans2003@gmail.com"
-          git config --global user.name "1chandan1"
-          git add ./
-          git commit -m "AutoEmail.exe"
-          git push
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "EXE"
+          release_name: "Release EXE"
+          draft: false
+          prerelease: false
+
+
+      - name: Upload EXE to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/AutoEmail.exe
+          asset_name: AutoEmail.exe
+          asset_content_type: application/octet-stream
