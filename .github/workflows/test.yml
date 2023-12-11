@@ -1,13 +1,13 @@
-name: Create EXE
+name: Create EXE and Release
 
 on:
   push:
     branches:
-      - main  # Adjust to your branch name
+      - main
 
 jobs:
-  build:
-    runs-on: windows-latest  # Use a Windows runner with Node.js 16
+  build-and-release:
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Code
@@ -16,14 +16,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.0  # Specify the Python version you need
-          architecture: x64  # Use x64 or x86 based on your requirements
+          python-version: 3.11.0
+          architecture: x64
 
       - name: Install Dependencies
         run: |
           pip install pyinstaller
           pip install -r requirements.txt
-        working-directory: ./  # Modify this path
+        working-directory: ./
 
       - name: Create .env File
         run: echo 'CLIENT_SECRET=${{secrets.CLIENT_SECRET}}' > .env
@@ -34,10 +34,30 @@ jobs:
       - name: Build EXE
         run: |
           pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
-        working-directory: ./  # Modify this path
+        working-directory: ./
 
-      - name: Upload EXE as Artifact
-        uses: actions/upload-artifact@v2
+      - name: Create Git Tag
+        run: |
+          git tag v$(date +%Y%m%d%H%M%S)
+          git push --tags
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: AutoEmail-EXE
-          path: ./output/AutoEmail.exe
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/AutoEmail.exe
+          asset_name: AutoEmail.exe
+          asset_content_type: application/octet-stream
