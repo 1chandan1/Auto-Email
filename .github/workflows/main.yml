@@ -39,8 +39,8 @@ jobs:
       - name: Get Release ID
         id: get_release
         run: |
-          RELEASE_ID=$(gh release view EXE --json id -q .id)
-          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+          $RELEASE_ID = gh release view EXE --json id -q .id
+          echo "RELEASE_ID=$RELEASE_ID" | Out-File -Append -FilePath $env:GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
