@@ -39,7 +39,8 @@ jobs:
       - name: Get Release ID and Upload URL
         id: get_release
         run: |
-          $RELEASE_DATA = gh release view EXE --json uploadUrl -q "{uploadUrl: .upload_url }"
+          $RELEASE_DATA = gh release view EXE --json id,uploadUrl -q "{ id: .id, uploadUrl: .upload_url }"
+          echo "RELEASE_ID=$(echo $RELEASE_DATA | ConvertFrom-Json).id" | Out-File -Append -FilePath $env:GITHUB_ENV
           echo "UPLOAD_URL=$(echo $RELEASE_DATA | ConvertFrom-Json).uploadUrl" | Out-File -Append -FilePath $env:GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
