@@ -10,14 +10,14 @@ jobs:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
 
     steps:
-      # - name: Checkout Code
-      #   uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # - name: Set up Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: 3.11.0  # Specify the Python version you need
-      #     architecture: x64  # Use x64 or x86 based on your requirements
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.0  # Specify the Python version you need
+          architecture: x64  # Use x64 or x86 based on your requirements
 
       # - name: Install Dependencies
       #   run: |
