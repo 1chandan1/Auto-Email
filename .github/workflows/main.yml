@@ -36,16 +36,13 @@ jobs:
       #     pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "version.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "updater.exe:." --distpath ./output "auto_email.py"
       #   working-directory: ./  # Modify this path
 
-      - name: Fetch Release ID
-        id: get_release_id
-        run: |
-          echo "RELEASE_ID=$(curl -X GET -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/releases/tags/EXE | jq -r '.id')" >> $GITHUB_ENV
+      - name: Install Python Requests Library
+        run: pip install requests
 
-      - name: Delete All Assets from Release
-        run: |
-          for asset_id in $(curl -X GET -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}/assets" | jq -r '.[].id'); do
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
-          done
+      - name: Manage Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python manage_release.py ${{ github.repository }} EXE
 
       # - name: Create Release
       #   id: create_release
