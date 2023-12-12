@@ -655,7 +655,6 @@ INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
     try:
-        print("new")
         check_for_updates()
         print("Running the latest version.")
         user = GoogleServices()
