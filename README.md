@@ -6,7 +6,7 @@
 ## Compiled Script
 The `Auto-email` application is available as an EXE file for Klero team members. Simply download and run the executable to start using the application.
 
-Download : [AutoEmail.exe](https://github.com/1chandan1/Auto-Email/raw/main/output/AutoEmail.exe)
+Download : [AutoEmail.exe](https://github.com/ChandanHans/Auto-Email/raw/main/output/AutoEmail.exe)
 
 ## Features
 - **Email to Notary** : Facilitates automatic email dispatch to notaries with pre-defined templates.
