@@ -9,9 +9,9 @@ The `Auto-email` application is available as an EXE file for Klero team members.
 Download : [AutoEmail.exe](https://github.com/1chandan1/Auto-Email/raw/main/output/AutoEmail.exe)
 
 ## Features
-- `**Email to Notary**`: Facilitates automatic email dispatch to notaries with pre-defined templates.
-- `**Email to Clients**`: Ensures consistent and efficient communication with clients through automated emails.
-- `**Invoice Creation**`: Automates the generation of invoices, making the billing process more efficient.
+- **Email to Notary** : Facilitates automatic email dispatch to notaries with pre-defined templates.
+- **Email to Clients** : Ensures consistent and efficient communication with clients through automated emails.
+- **Invoice Creation** : Automates the generation of invoices, making the billing process more efficient.
 
 ### Auto-Update Feature
 The application is equipped with an auto-update feature. Whenever there's a new version available, the application will automatically update itself to ensure you're always using the latest version.
