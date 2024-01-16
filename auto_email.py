@@ -392,15 +392,13 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print_center(
                 f"-------------------  Account : {user.email}  -------------------")
             print()
-            print_center(
-                "-------------------  Notary Email  -------------------")
+            print_center("Notary Email")
             print()
             print_center(f"Google Sheet : {spreadsheet.title}")
             print()
-            print_center(
-                "-------------------  Sending All Emails       ------------------------\n\n")
+            print_center("Sending All Emails\n\n")
             print(f"Index-File Row    :    {notary_sheet_index}")
-            print(f"All Contact Date  :    {contact_date}\n")
+            print(f"Contact Date      :    {contact_date}\n")
             print(f"Target Sheet Row  :    {index + 1}\n")
             print(f"Person Name       :    {person_full_name}")
             print(f"Person Last Name  :    {person_last_name}\n")
@@ -463,7 +461,7 @@ def notary_email():
     print_center(
         f"-------------------  Account : {user.email}  -------------------")
     print()
-    print_center("-------------------  Notary Email  -------------------")
+    print_center("Notary Email")
     print("\n")
     while True:
         url = input("Target Google Sheet Link ( 0 : quit ) : ").strip()
@@ -483,7 +481,7 @@ def notary_email():
     print_center(
         f"-------------------  Account : {user.email}  -------------------")
     print()
-    print_center("-------------------  Notary Email  -------------------")
+    print_center("Notary Email")
     print()
     print_center(f"Google Sheet : {spreadsheet.title}")
     print("\n")
@@ -507,11 +505,12 @@ def notary_email():
         sleep(0.1)
     while msvcrt.kbhit():
         msvcrt.getch()
+    clear_display()
     print("\n")
     print_center(
         f"-------------------  Account : {user.email}  -------------------")
     print()
-    print_center("-------------------  Notary Email  -------------------")
+    print_center("Notary Email")
     print()
     input("\n\nTask Completed\nPress Enter To Continue : ")
     main()
@@ -522,7 +521,7 @@ def client_email():
     print("\n")
     print_center(f"-------------------  Account : {user.email}  -------------------")
     print()
-    print_center("-------------------  Client Email  -------------------")
+    print_center("Client Email")
     print()
     user_input = input(f"Enter a list of rows separated by commas ( 0 : quit ) : ")
     input_list = user_input.split(",")
@@ -565,7 +564,7 @@ def facturation():
     print_center(
         f"-------------------  Account : {user.email}  -------------------")
     print()
-    print_center("-------------------  Facturation  -------------------")
+    print_center("Facturation")
     print()
     user_input = input(f"Enter a list of rows separated by commas ( 0 : quit ) : ")
     input_list = user_input.split(",")
@@ -653,7 +652,7 @@ INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
     try:
-        check_for_updates()
+        # check_for_updates()
         print("Running the latest version.")
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
