@@ -377,7 +377,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 first_col = notary_worksheet.col_values(2)  # Get all values in the first column
 
                 notary_sheet_row = ["", notary_first_name, notary_last_name, "", "",
-                                    "", row[5], row[6], row[8], row[7], "Not contacted", "-", "-", "-"]
+                                    "", row[5], row[6], row[8], row[7], "Not contacted", "-"]
                 notary_sheet_index = len(first_col) + 1
 
                 notary_worksheet.insert_row(
