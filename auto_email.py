@@ -215,6 +215,7 @@ def send_email(message: MIMEMultipart):
             return status
     except Exception as e:
         print(f"Error sending email: {e}")
+        return None
 
 
 def create_draft(message: MIMEMultipart):
@@ -347,13 +348,6 @@ def create_facture_files(name, facture_number, ht, tva, tcc, paid_date):
     convert(f"Invoice/{facture_number} {name}.docx")
 
 
-def update_date(row_index, all_date):
-    for i in [0, 1, 2]:
-        if all_date[i] == "-":
-            break
-    date = datetime.now().date().strftime("%d/%m/%Y")
-    notary_worksheet.update_cell(row_index, 12+i, date)
-
 
 def send_notary_emails(spreadsheet: gspread.Spreadsheet):
     worksheet = spreadsheet.get_worksheet(0)
@@ -365,7 +359,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             words = person_full_name.split()
             person_last_name = " ".join(
                 [word for word in words if word.isupper()])
-            if not person_last_name.strip():
+            if not person_last_name.strip():    
                 continue
             notary_full_name = str(row[5]).strip()
             words = notary_full_name.split()
@@ -392,7 +386,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             if notary_sheet_row[10] == "Not cooperating":
                 worksheet.update_cell(index, 12, "Not cooperating")
                 continue
-            all_date = notary_sheet_row[11:14]
+            contact_date = notary_sheet_row[11]
             clear_display()
             print("\n")
             print_center(
@@ -406,7 +400,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print_center(
                 "-------------------  Sending All Emails       ------------------------\n\n")
             print(f"Index-File Row    :    {notary_sheet_index}")
-            print(f"All Contact Date  :    {all_date}\n")
+            print(f"All Contact Date  :    {contact_date}\n")
             print(f"Target Sheet Row  :    {index + 1}\n")
             print(f"Person Name       :    {person_full_name}")
             print(f"Person Last Name  :    {person_last_name}\n")
@@ -414,7 +408,24 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print(f"Notary Last Name  :    {notary_last_name}\n")
             print(f"DON               :    {person_don}")
             print(f"To                :    {notary_email}\n")
-            if all_date[-1] != "-":
+            
+            if contact_date == "-" or contact_date == "":
+                countdown("Sending Email in", random.randint(120, 180))
+                print("\nSending Email...")
+                for i in [1,2,3]:
+                    message = create_notary_message(user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
+                    status = send_email(message)
+                    if status:
+                        worksheet.update_cell(index, 11, "envoyé")
+                        today_date = datetime.now().date().strftime("%d/%m/%Y")
+                        notary_worksheet.update_cell(notary_sheet_index, 12, today_date)
+                        if notary_sheet_row[10] == "Not contacted":
+                            notary_worksheet.update_cell(notary_sheet_index, 11, "Contacted / pending answer")
+                        break
+                    else:
+                        countdown("Sending Email again in", 5)
+                        pass
+            else:
                 countdown("Creating Draft in", 20)
                 print("\nCreating Draft...")
                 message = create_notary_message(
@@ -422,20 +433,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 status = create_draft(message)
                 if status:
                     worksheet.update_cell(index, 11, "draft")
-                    worksheet.update_cell(index, 12, "3 emails sent already")
-            else:
-                countdown("Sending Email in", random.randint(120, 180))
-                print("\nSending Email...")
-                update_date(notary_sheet_index, all_date)
-                message = create_notary_message(
-                    user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
-                status = send_email(message)
-                if status:
-                    worksheet.update_cell(index, 11, "envoyé")
-                    if notary_sheet_row[10] == "Not contacted":
-                        notary_worksheet.update_cell(
-                            notary_sheet_index, 11, "Contacted / pending answer")
-            sleep(5)
+                    worksheet.update_cell(index, 12, "emails sent already")
             print("\nSuccess")
             notary_worksheet.update_cell(notary_sheet_index, 10, notary_email)
 
