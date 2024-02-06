@@ -9,7 +9,6 @@ import re
 import shutil
 import sys
 from datetime import datetime
-from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
@@ -141,13 +140,13 @@ class GoogleServices:
         self.signature = f'''
             <div style="color: rgb(118, 165, 175); font-family: comic sans ms, sans-serif;">
             <b><p>{self.sender_name}</p>
-            <p>p/o Laura LASSERRE</p>
-            <p>LD Généalogie</p>
-            <p>Adresses : </p>
-            <p>23 rue Fernand Rabier, 45000 ORLÉANS (Siège social)</p>
-            <p>14 avenue de l'Opéra, 75001 PARIS</p>
-            <p>+33 {self.phone}</p></b>
-            <img src="https://drive.google.com/uc?id=1rIM5ATxjtV1qQh_etMKFzEvzn3USqCt5">
+            <p>Chargé d'affaires </p>
+            <br>
+            <p>p/o Jean-Michel Branche Gérant Klero Généalogie, Avocat honoraire</p>
+            <p>295 Rue Saint-Jacques, 75005 Paris (Siège social)</p>
+            <p>TVA intracommunautaire: FR49947791927</p>
+            <p>{self.phone}</p></b>
+            <img src="https://drive.google.com/uc?export=view&id=1Z4E-R3MxulRpkMQa4qNAV2LoFrKUxTgo" width="250" height="150">
             </div>'''
 
 
@@ -235,27 +234,19 @@ def create_notary_message(sender: str, to: str, person_full_name: str, person_la
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
     message_html = f'''
             <p>À l'attention de Maître {notary_last_name}</p>
-            <p>Maître, </p>
+            <p>Maître,</p>
             <p>Dans le cadre de notre activité, nous avons développé une nouvelle prestation dédiée à la recherche de bénéficiaires d'actifs non réclamés.</p>
-            <p>Votre étude s'est chargée de régler la succession de {person_full_name} dont l'acte de notoriété a été établi le {person_don}. Toutefois, il reste toujours des fonds au nom de cette personne. </p>
-            <p>Affirmatifs sur l'existence de fonds au nom de {person_full_name}, nous n'en connaissons, pour le moment, ni le support (compte bancaire, assurance vie, plan épargne retraite, épargne salariale, etc) ni le montant. </p>
+            <p>Votre étude s'est chargée de régler la succession de {person_full_name} dont l'acte de notoriété a été établi le {person_don}. Toutefois, d'après nos recherches, il est probable que des fonds non connus par la famille n'aient pas été transmis aux héritiers. Nous n'en connaissons, pour le moment, ni le support (par ex. compte bancaire, assurance vie, plan épargne retraite, épargne salariale) ni le montant. Ces montants sont généralement limités (en moyenne 500€ sur les 500 dossiers traités à l'étude l'an dernier), mais il nous arrive de retrouver des montants plus conséquents.</p>
             <p>Ne pouvant nous mandater nous-mêmes, nous avons besoin de rentrer en contact avec les héritiers afin de proposer notre prestation pour obtenir les informations précitées et débloquer lesdits fonds. Ainsi, <b>pouvez-vous transmettre mes coordonnées à l'un des héritiers afin que ce dernier puisse revenir vers moi pour de plus amples renseignements ?</b></p>
             <p>À titre informatif, sachez que :</p>
             <ul>
             <li>Si la succession est toujours ouverte, les fonds débloqués seront réintégrés déduits de nos honoraires</li>
-            <li>Si la succession est clôturée, les fonds seront directement reversés aux héritiers, et nous vous en aviserons si le montant de ces derniers pourrait avoir un impact sur les droits.</li>
+            <li>Si la succession est clôturée, les fonds seront directement reversés aux héritiers, et nous vous aviserons si le montant de ces derniers pourrait avoir un impact sur les droits.</li>
             </ul>
-            <p>Vous trouverez en pièce jointe une copie de la carte professionnelle de Madame Laura LASSERRE, gérante de l'étude.</p>
-            <p>Vous remerciant par avance de votre concours.</p>
+            <p>Nous tenons à souligner, conformément à la loi Eckert du 13 juin 2014, l'importance cruciale de l'information complète aux héritiers pour le règlement équitable des successions. Vous remerciant par avance de votre concours.</p>
             <p>Bien cordialement,</p>
         '''
     message.attach(MIMEText(message_html + user.signature, 'html'))
-
-    with open(resource_path("attachment.pdf"), 'rb') as pdf_file:
-        pdf_attachment = MIMEApplication(pdf_file.read(), _subtype='pdf')
-        pdf_attachment.add_header(
-            'Content-Disposition', f'attachment; filename=Carte_pro_Laura_LASSERRE.pdf')
-        message.attach(pdf_attachment)
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
 
