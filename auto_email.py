@@ -138,7 +138,7 @@ class GoogleServices:
     
     def set_signature(self):
         self.signature = f'''
-            <div style="color: rgb(118, 165, 175); font-family: comic sans ms, sans-serif;">
+            <div>
             <b><p>{self.sender_name}</p>
             <p>Chargé d'affaires </p>
             <br>
