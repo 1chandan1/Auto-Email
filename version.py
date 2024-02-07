@@ -65,3 +65,4 @@ def check_for_updates():
         subprocess.Popen([f'del "{EXE_PATH}"'])
         subprocess.Popen([f'rename "{new_exe}" "{EXE_PATH}"'])
         sys.exit()
+        
