@@ -632,7 +632,7 @@ load_dotenv(dotenv_path=resource_path(".env"))
 client_secret = os.environ["CLIENT_SECRET"]
 client_secret_info = json.loads(client_secret)
 
-
+ 
 NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
