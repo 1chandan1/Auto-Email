@@ -27,41 +27,28 @@ from dotenv import load_dotenv
 
 
 class GoogleServices:
-    """
-    A class for authenticating a user to perform operations in Google Drive and Gmail.
 
-    This class provides methods to authenticate a user using OAuth2 credentials and obtain
-    authenticated services for Google Drive and Gmail. It simplifies the process of
-    setting up authentication and obtaining user-specific credentials.
-
-    Attributes:
-        creds (Credentials): The user's OAuth2 credentials.
-        gmail_service (Resource): Authenticated service for Gmail API.
-        drive_service (Resource): Authenticated service for Google Drive API.
-        email (str): The user's email address associated with the authenticated account.
-    """
     SCOPES = [
         "https://www.googleapis.com/auth/gmail.compose",
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
     INTERN_SHEET_KEY = "1cveFT3BvSJ9d-PvBdyGvZ7Fd_0XYDlNafOpTXUiz_eI"
-    creds = None
-    gmail_service = None
-    drive_service = None
-    sheet_service = None
-    email = None
-    sender_name = None
-    phone = None
-    signature = None
 
     def __init__(self):
+        self.creds = None
+        self.gmail_service = None
+        self.drive_service = None
+        self.sheet_service = None
+        self.gmail = None
+        self.sender_name = None
+        self.phone = None
         self.login()
-        self.set_signature()
+        self.signature = self.get_signature()
         
     def login(self):
-        self.authenticate()
-        INTERNS = self.get_interns()
+        self.google_auth()
+
         clear_display()
         while True:
             print("\n")
@@ -78,22 +65,21 @@ class GoogleServices:
             while msvcrt.kbhit():
                 msvcrt.getch()
             if choice == "n":
-                self.authenticate(True)
-            if self.email in INTERNS.keys():
-                self.sender_name = INTERNS[self.email]["Name"]
-                self.phone = INTERNS[self.email]["Phone"]
+                self.google_auth(True)
+            if self.gmail in self.interns.keys():
+                self.sender_name = self.interns[self.gmail]["Name"]
+                self.phone = self.interns[self.gmail]["Phone"]
                 break
             else:
                 clear_display()
                 print("\n\n\nInvalid Sender-Email")
                 print("Use any of these Account :")
-                for i in INTERNS:
-                    print("  ", i)
+                for i in self.interns:
+                    print(f"  {i}   ({self.interns[i]['Email']})")
                 print()
 
-    def authenticate(self, new=False):
+    def google_auth(self, new=False):
         """This will help to create service for the object"""
-
         if new:
             self.creds = None
         else:
@@ -119,9 +105,11 @@ class GoogleServices:
         self.drive_service = build('drive', 'v3', credentials=self.creds)
         self.sheet_service = build('sheets', 'v4', credentials=self.creds)
         profile = self.gmail_service.users().getProfile(userId='me').execute()
-        self.email = profile['emailAddress']
+        self.gmail = profile['emailAddress']
+        self.interns = self.get_interns_info()
+        self.email = self.get_user_email()
 
-    def get_interns(self):
+    def get_interns_info(self):
         gc = gspread.authorize(self.creds)
         spreadsheet = gc.open_by_key(self.INTERN_SHEET_KEY) 
         worksheet = spreadsheet.get_worksheet(0)
@@ -130,19 +118,28 @@ class GoogleServices:
 
         interns_dict = {}
         for intern in interns_data:
-            interns_dict[intern['Email']] = {
+            interns_dict[intern['Gmail']] = {
                 'Name': intern['Name'],
-                'Phone': intern['Phone']
+                'Phone': intern['Phone'],
+                'Email': intern['Email']
             }
         return interns_dict
     
-    def set_signature(self):
-        self.signature = f'''
+    def get_user_email(self):
+        try:
+            email =  self.interns[self.gmail]["Email"]
+            if email == "":
+                return self.gmail
+            return email
+        except:
+            return self.gmail
+        
+    def get_signature(self):
+        return f'''
             <div>
             <b><p>{self.sender_name}</p>
             <p>Chargé d'affaires </p>
-            <br>
-            <p>p/o Jean-Michel Branche Gérant Klero Généalogie, Avocat honoraire</p>
+            <p>p/o Jean-Michel Branche Gérant Klero Généalogie, <a href="https://www.avocatparis.org/annuaire/avocat?cnbf=2nWRmtPEdadV+CSnc4jCEA==">Avocat honoraire</a></p>
             <p>295 Rue Saint-Jacques, 75005 Paris (Siège social)</p>
             <p>TVA intracommunautaire: FR49947791927</p>
             <p>{self.phone}</p></b>
@@ -207,7 +204,7 @@ def print_center(text):
 def send_email(message: MIMEMultipart):
     try:
         status = user.gmail_service.users().messages().send(
-            userId=user.email, body=message).execute()
+            userId=user.gmail, body=message).execute()
         if status:
             print("\nEmail sent successfully.")
             sleep(2)
@@ -220,7 +217,7 @@ def send_email(message: MIMEMultipart):
 def create_draft(message: MIMEMultipart):
     try:
         status = user.gmail_service.users().drafts().create(
-            userId=user.email, body={'message': message}).execute()
+            userId=user.gmail, body={'message': message}).execute()
         if status:
             return status
     except Exception as e:
@@ -229,7 +226,7 @@ def create_draft(message: MIMEMultipart):
 
 def create_notary_message(sender: str, to: str, person_full_name: str, person_last_name: str, notary_last_name: str, person_don: str):
     message = MIMEMultipart()
-    message['From'] = sender
+    message['From'] = f"Klero Genealogy <{sender}>"
     message['To'] = to
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
     message_html = f'''
@@ -253,7 +250,7 @@ def create_notary_message(sender: str, to: str, person_full_name: str, person_la
 
 def create_client_message(sender: str, to: str, person_full_name: str, amount_found_by_us: str, amount_with_tex: str, amount_after_fee: str):
     message = MIMEMultipart()
-    message['From'] = sender
+    message['From'] = f"Klero Genealogy <{sender}>"
     message['To'] = to
     message['Subject'] = f'Retour sur actifs débloqués - {person_full_name}'
     message_html = f'''
@@ -279,7 +276,8 @@ def create_client_message(sender: str, to: str, person_full_name: str, amount_fo
 
 def create_facture_message(sender: str, to: str, person_full_name: str):
     message = MIMEMultipart()
-    message['From'] = sender
+    if sender:
+        message['From'] = f"Klero Genealogy <{sender}>"
     message['To'] = to
     message['Subject'] = f'Clôture dossier {person_full_name}'
     message_html = f'''
@@ -631,12 +629,9 @@ def main():
 
 
 load_dotenv(dotenv_path=resource_path(".env"))
-try:
-    client_secret = os.environ["CLIENT_SECRET"]
-    client_secret_info = json.loads(client_secret)
-except:
-    input("CLIENT_SECRET environment variable is not set.")
-    sys.exit(1)
+client_secret = os.environ["CLIENT_SECRET"]
+client_secret_info = json.loads(client_secret)
+
 
 NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
