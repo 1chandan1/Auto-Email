@@ -4,6 +4,8 @@ import datetime
 import sys
 import os
 
+import tqdm
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(
@@ -15,7 +17,7 @@ GITHUB_EXE_URL = 'https://raw.githubusercontent.com/ChandanHans/Auto-email/main/
 REPO_API_URL = 'https://api.github.com/repos/ChandanHans/Auto-email/commits?path=output/AutoEmail.exe'
 LOCAL_VERSION_PATH = resource_path("version.txt")  # Path to the local version file
 EXE_PATH = sys.executable
-UPDATER_EXE_PATH = resource_path("updater.exe")  # The path to your updater executable
+UPDATER_EXE_PATH = resource_path("updater.bat")  # The path to your updater executable
 
 def get_local_version_date():
     """Read the version date from the local version file."""
@@ -31,6 +33,21 @@ def get_remote_version_date():
         return None
     return datetime.datetime.strptime(commits[0]['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ')
 
+def download_new_version(file_name: str , url):
+    """Download the new version and save it as a new file."""
+    print("Downloading")
+    # Send a request to get the file
+    response = requests.get(url, stream=True)
+    # Get the total file size in bytes.
+    total_size = int(response.headers.get('content-length', 0))
+    # Replace the dot in the filename to create a new filename
+    new_exe = file_name.replace(".", "_new.")
+    # Open the file in binary write mode
+    with open(new_exe, "wb") as file:
+        # Download the file with progress bar
+        for data in tqdm(response.iter_content(chunk_size=1024), total=total_size//1024, unit='KB'):
+            file.write(data)
+    return new_exe
 
 def check_for_updates():
     """Check if an update is available based on the latest commit date."""
@@ -44,5 +61,7 @@ def check_for_updates():
     time_difference = remote_version_date - local_version_date
     # Check if the difference is greater than 2 minutes
     if time_difference > datetime.timedelta(minutes=2):
-        subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, GITHUB_EXE_URL])
+        new_exe = download_new_version(EXE_PATH,GITHUB_EXE_URL)
+        subprocess.Popen([f'del "{EXE_PATH}"'])
+        subprocess.Popen([f'rename "{new_exe}" "{EXE_PATH}"'])
         sys.exit()
