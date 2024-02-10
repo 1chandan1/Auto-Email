@@ -13,4 +13,4 @@ def increment_version(version):
     return f"{major}.{minor}.{patch}"
 
 with open("version.txt","w") as f:
-    f.write(increment_version(version))
+    f.write(increment_version(version)) 
