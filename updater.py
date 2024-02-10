@@ -1,10 +1,9 @@
-import subprocess
 import requests
 import datetime
 import sys
 import os
 
-import tqdm
+from tqdm import tqdm
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -36,12 +35,12 @@ def get_new_version():
     response = requests.get(VERSION_URL)
     return response.text
 
-def download_new_version(url):
+def download_new_version():
     """Download the new version and save it as a new file."""
     new_version = get_new_version()
     print(f"Downloading V{new_version}")
 
-    response = requests.get(url, stream=True)
+    response = requests.get(GITHUB_EXE_URL, stream=True)
     total_size = int(response.headers.get('content-length', 0))
     new_exe = f"AutoEmail v{new_version}.exe"
     with open(new_exe, "wb") as file:
@@ -62,7 +61,7 @@ def check_for_updates():
         # Check if the difference is greater than 2 minutes
         if time_difference > datetime.timedelta(minutes=2):
             print(f"Update available")
-            download_new_version(GITHUB_EXE_URL)
+            download_new_version()
             print("Completed")
             input("Please close this application and launch the latest version.")
             sys.exit()
