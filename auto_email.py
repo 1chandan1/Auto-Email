@@ -12,7 +12,7 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
-from version import check_for_updates
+from updater import check_for_updates
 
 import gspread
 from docx import Document
@@ -633,7 +633,7 @@ client_secret = os.environ["CLIENT_SECRET"]
 client_secret_info = json.loads(client_secret)
 
  
-NOTARY_SHEET_KEY = "1VBT_7wkJ3sIgRYX7LLkkX84BSkNUMhu2_QCOJZXp9Ds"
+NOTARY_SHEET_KEY = "1NBWDbmuXHKr6yWsEvxJhio4uaUPKol6_dJvtgKJCDhc"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 if __name__ == "__main__":
