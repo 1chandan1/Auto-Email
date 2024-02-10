@@ -40,13 +40,11 @@ def download_new_version(url):
     """Download the new version and save it as a new file."""
     new_version = get_new_version()
     print(f"Downloading V{new_version}")
-    # Send a request to get the file
+
     response = requests.get(url, stream=True)
-    # Get the total file size in bytes.
     total_size = int(response.headers.get('content-length', 0))
     new_exe = f"AutoEmail v{new_version}.exe"
     with open(new_exe, "wb") as file:
-        # Download the file with progress bar
         for data in tqdm(response.iter_content(chunk_size=1024), total=total_size//1024, unit='KB'):
             file.write(data)
 
