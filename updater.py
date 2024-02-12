@@ -51,7 +51,10 @@ def check_for_updates():
     """Check if an update is available based on the latest commit date."""
     try:
         print("Checking for updates...")
-        local_version_date = get_local_version_date()
+        try:
+            local_version_date = get_local_version_date()
+        except:
+            return
         remote_version_date = get_remote_version_date()
 
         if remote_version_date is None:

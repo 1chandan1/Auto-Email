@@ -43,6 +43,7 @@ class GoogleServices:
         self.gmail = None
         self.sender_name = None
         self.phone = None
+        self.gender = None
         self.login()
         self.signature = self.get_signature()
         
@@ -69,6 +70,7 @@ class GoogleServices:
             if self.gmail in self.interns.keys():
                 self.sender_name = self.interns[self.gmail]["Name"]
                 self.phone = self.interns[self.gmail]["Phone"]
+                self.gender = self.interns[self.gmail]["Gender"]
                 break
             else:
                 clear_display()
@@ -121,7 +123,8 @@ class GoogleServices:
             interns_dict[intern['Gmail']] = {
                 'Name': intern['Name'],
                 'Phone': intern['Phone'],
-                'Email': intern['Email']
+                'Email': intern['Email'],
+                'Gender': intern['Gender']
             }
         return interns_dict
     
@@ -138,12 +141,14 @@ class GoogleServices:
         return f'''
             <div>
             <b><p>{self.sender_name}</p>
-            <p>Chargé d'affaires </p>
+            <p>{"Chargé d'affaires" if self.gender == "M" else "Chargée d'affaires" }</p>
+            <p>{self.phone}</p>
+            <p>Prendre rendez-vous directement ici: <a href="https://calendly.com/klero-genealogie1/30min">Calendly</a></p>
             <p>p/o Jean-Michel Branche Gérant Klero Généalogie, <a href="https://www.avocatparis.org/annuaire/avocat?cnbf=2nWRmtPEdadV+CSnc4jCEA==">Avocat honoraire</a></p>
             <p>295 Rue Saint-Jacques, 75005 Paris (Siège social)</p>
             <p>TVA intracommunautaire: FR49947791927</p>
-            <p>{self.phone}</p></b>
-            <img src="https://drive.google.com/uc?export=view&id=1Z4E-R3MxulRpkMQa4qNAV2LoFrKUxTgo" width="250" height="150">
+            <p>01 73 71 13 63</p></b>
+            <img src="https://drive.google.com/uc?export=view&id=1Z4E-R3MxulRpkMQa4qNAV2LoFrKUxTgo" width="125" height="75">
             </div>'''
 
 
@@ -365,8 +370,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 worksheet.update_cell(index, 12, "New Notary added")
                 first_col = notary_worksheet.col_values(2)  # Get all values in the first column
 
-                notary_sheet_row = ["", notary_first_name, notary_last_name, "", "",
-                                    "", row[5], row[6], row[8], row[7], "Not contacted", "-"]
+                notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], row[8], "Not contacted", ""]
                 notary_sheet_index = len(first_col) + 1
 
                 notary_worksheet.insert_row(
@@ -396,32 +400,29 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print(f"DON               :    {person_don}")
             print(f"To                :    {notary_email}\n")
             
-            if contact_date == "-" or contact_date == "":
+            if notary_sheet_row[10] == "Not contacted":
                 countdown("Sending Email in", random.randint(120, 180))
                 print("\nSending Email...")
-                for i in [1,2,3]:
+                for _ in range(3):
                     message = create_notary_message(user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
                     status = send_email(message)
                     if status:
                         worksheet.update_cell(index, 11, "envoyé")
                         today_date = datetime.now().date().strftime("%d/%m/%Y")
                         notary_worksheet.update_cell(notary_sheet_index, 12, today_date)
-                        if notary_sheet_row[10] == "Not contacted":
-                            notary_worksheet.update_cell(notary_sheet_index, 11, "Contacted / pending answer")
+                        notary_worksheet.update_cell(notary_sheet_index, 11, "Contacted / pending answer")
+                        notary_worksheet.update_cell(notary_sheet_index, 15, person_full_name)
+                        print("\nSuccess")
                         break
                     else:
-                        countdown("Sending Email again in", 5)
+                        countdown("Try to sending email again in", 5)
                         pass
-            else:
-                countdown("Creating Draft in", 20)
-                print("\nCreating Draft...")
-                message = create_notary_message(
-                    user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
-                status = create_draft(message)
-                if status:
-                    worksheet.update_cell(index, 11, "draft")
-                    worksheet.update_cell(index, 12, "emails sent already")
-            print("\nSuccess")
+            elif notary_sheet_row[10] in ("Contacted / pending answer","Cooperating"):
+                all_scheduled_data = scheduling_worksheet.get_all_values()
+                
+            elif notary_sheet_row[10] == "Not cooperating":
+                print("Not cooperating")
+                countdown("Next", 5)
             notary_worksheet.update_cell(notary_sheet_index, 10, notary_email)
 
 
@@ -644,6 +645,10 @@ if __name__ == "__main__":
         gc = gspread.authorize(user.creds)
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
+        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)
+        # all_scheduled_data = scheduling_worksheet.get_all_values()
+        # for data in all_scheduled_data.reverse():
+        #     print(data)
         main()
     except Exception as e:
         print(e)
