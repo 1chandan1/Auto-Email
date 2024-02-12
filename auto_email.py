@@ -9,6 +9,7 @@ import re
 import shutil
 import sys
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
@@ -367,7 +368,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             notary_sheet_index, notary_sheet_row = get_row_by_name(
                 notary_first_name, notary_last_name)
             if not notary_sheet_index:
-                worksheet.update_cell(index, 12, "New Notary added")
+                worksheet.update_acell(f"L{index}", "New Notary added")
                 first_col = notary_worksheet.col_values(2)  # Get all values in the first column
 
                 notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], row[8], "Not contacted", ""]
@@ -377,7 +378,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     notary_sheet_row, index=notary_sheet_index, inherit_from_before=True)
 
             if notary_sheet_row[10] == "Not cooperating":
-                worksheet.update_cell(index, 12, "Not cooperating")
+                worksheet.update_acell(f"L{index}", "Not cooperating")
                 continue
             contact_date = notary_sheet_row[11]
             clear_display()
@@ -399,6 +400,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print(f"Notary Last Name  :    {notary_last_name}\n")
             print(f"DON               :    {person_don}")
             print(f"To                :    {notary_email}\n")
+            notary_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
             
             if notary_sheet_row[10] == "Not contacted":
                 countdown("Sending Email in", random.randint(120, 180))
@@ -407,23 +409,32 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     message = create_notary_message(user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
                     status = send_email(message)
                     if status:
-                        worksheet.update_cell(index, 11, "envoyé")
+                        worksheet.update_acell(f"K{index}", "envoyé")
                         today_date = datetime.now().date().strftime("%d/%m/%Y")
-                        notary_worksheet.update_cell(notary_sheet_index, 12, today_date)
-                        notary_worksheet.update_cell(notary_sheet_index, 11, "Contacted / pending answer")
-                        notary_worksheet.update_cell(notary_sheet_index, 15, person_full_name)
+                        all_row_with_same_email = [index for index, sublist in enumerate(notary_worksheet.get_all_values(),start=1) if notary_email in sublist]
+                        for row_index in all_row_with_same_email:
+                            notary_worksheet.update_acell(f"L{row_index}", today_date)
+                            notary_worksheet.update_acell(f"K{row_index}", "Contacted / pending answer")
+                            notary_worksheet.update_acell(f"O{row_index}", person_full_name)
                         print("\nSuccess")
                         break
                     else:
-                        countdown("Try to sending email again in", 5)
+                        countdown("Trying to send email again", 5)
                         pass
             elif notary_sheet_row[10] in ("Contacted / pending answer","Cooperating"):
+                print("Scheduling Email")
+                sleep(2)
+                previous_scheduled_date = notary_sheet_row[11]
                 all_scheduled_data = scheduling_worksheet.get_all_values()
-                
-            elif notary_sheet_row[10] == "Not cooperating":
-                print("Not cooperating")
-                countdown("Next", 5)
-            notary_worksheet.update_cell(notary_sheet_index, 10, notary_email)
+                for scheduled_data in all_scheduled_data[::-1]:
+                    if notary_email in scheduled_data and scheduled_data[3]=="Scheduled":
+                        previous_scheduled_date = scheduled_data[7]
+                        break
+                new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
+                scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,user.email,notary_email,new_date])
+                worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
+                print(f"Scheduled on {new_date}")
+                    
 
 
 def clear_display():
@@ -645,10 +656,7 @@ if __name__ == "__main__":
         gc = gspread.authorize(user.creds)
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
-        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)
-        # all_scheduled_data = scheduling_worksheet.get_all_values()
-        # for data in all_scheduled_data.reverse():
-        #     print(data)
+        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)   
         main()
     except Exception as e:
         print(e)
