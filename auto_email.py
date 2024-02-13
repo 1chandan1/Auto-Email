@@ -350,6 +350,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
     for index, row in enumerate(all_values, start=1):
         if row[10] == "à envoyer":
             notary_email = str(row[8]).split("\n")[0]
+            all_row_with_same_email = [index for index, sublist in enumerate(notary_worksheet.get_all_values(),start=1) if notary_email in sublist]
             person_full_name = str(row[0]).strip()
             words = person_full_name.split()
             person_last_name = " ".join(
@@ -370,8 +371,13 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             if not notary_sheet_index:
                 worksheet.update_acell(f"L{index}", "New Notary added")
                 first_col = notary_worksheet.col_values(2)  # Get all values in the first column
-
-                notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], row[8], "Not contacted", ""]
+                try:
+                    temp_row = notary_worksheet.row_values(all_row_with_same_email[0])
+                    temp_status = temp_row[10]
+                    temp_date = temp_row[11]
+                    notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, temp_status, temp_date]
+                except:
+                    notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, "Not contacted", ""]
                 notary_sheet_index = len(first_col) + 1
 
                 notary_worksheet.insert_row(
@@ -411,7 +417,6 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     if status:
                         worksheet.update_acell(f"K{index}", "envoyé")
                         today_date = datetime.now().date().strftime("%d/%m/%Y")
-                        all_row_with_same_email = [index for index, sublist in enumerate(notary_worksheet.get_all_values(),start=1) if notary_email in sublist]
                         for row_index in all_row_with_same_email:
                             notary_worksheet.update_acell(f"L{row_index}", today_date)
                             notary_worksheet.update_acell(f"K{row_index}", "Contacted / pending answer")
