@@ -433,6 +433,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
                 scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,user.email,notary_email,new_date])
                 worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
+                worksheet.update_acell(f"K{index}", "draft")
                 print(f"Scheduled on {new_date}")
                     
 
