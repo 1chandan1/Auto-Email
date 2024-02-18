@@ -44,7 +44,7 @@ class GoogleServices:
         self.gmail = None
         self.sender_name = None
         self.phone = None
-        self.gender = None
+        self.charge = None
         self.login()
         self.signature = self.get_signature()
         
@@ -71,7 +71,9 @@ class GoogleServices:
             if self.gmail in self.interns.keys():
                 self.sender_name = self.interns[self.gmail]["Name"]
                 self.phone = self.interns[self.gmail]["Phone"]
-                self.gender = self.interns[self.gmail]["Gender"]
+                self.charge = self.interns[self.gmail]["Charge"]
+                self.image = self.interns[self.gmail]["Image"]
+                self.calendly = self.interns[self.gmail]["Calendly"]
                 break
             else:
                 clear_display()
@@ -125,7 +127,9 @@ class GoogleServices:
                 'Name': intern['Name'],
                 'Phone': intern['Phone'],
                 'Email': intern['Email'],
-                'Gender': intern['Gender']
+                'Charge': intern['Charge'],
+                'Image':intern['Image'],
+                'Calendly':intern['Calendly']
             }
         return interns_dict
     
@@ -139,19 +143,18 @@ class GoogleServices:
             return self.gmail
         
     def get_signature(self):
-        return f'''
-            <div>
-            <b><p>{self.sender_name}</p>
-            <p>{"Chargé d'affaires" if self.gender == "M" else "Chargée d'affaires" }</p>
-            <p>{self.phone}</p>
-            <p>Prendre rendez-vous directement ici: <a href="https://calendly.com/klero-genealogie1/30min">Calendly</a></p>
-            <p>p/o Jean-Michel Branche Gérant Klero Généalogie, <a href="https://www.avocatparis.org/annuaire/avocat?cnbf=2nWRmtPEdadV+CSnc4jCEA==">Avocat honoraire</a></p>
-            <p>295 Rue Saint-Jacques, 75005 Paris (Siège social)</p>
-            <p>TVA intracommunautaire: FR49947791927</p>
-            <p>01 73 71 13 63</p></b>
-            <img src="https://drive.google.com/uc?export=view&id=1Z4E-R3MxulRpkMQa4qNAV2LoFrKUxTgo" width="125" height="75">
-            </div>'''
-
+        with open(resource_path('signature.html'), 'r', encoding="utf-8") as file:
+            html_template = file.read()
+        
+        signature = html_template.format(
+            image_link = self.image,
+            name = self.sender_name,
+            charge = self.charge,
+            phone = self.phone,
+            email = self.email,
+            calendly_link = self.calendly
+        )
+        return signature
 
 def get_filled_row_values(worksheet , row_number):
     merged_ranges = worksheet.spreadsheet.fetch_sheet_metadata()['sheets'][0]['merges']
@@ -232,23 +235,17 @@ def create_draft(message: MIMEMultipart):
 
 def create_notary_message(sender: str, to: str, person_full_name: str, person_last_name: str, notary_last_name: str, person_don: str):
     message = MIMEMultipart()
-    message['From'] = f"Klero Genealogy <{sender}>"
+    message['From'] = f"Klero Genealogie <{sender}>"
     message['To'] = to
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
-    message_html = f'''
-            <p>À l'attention de Maître {notary_last_name}</p>
-            <p>Maître,</p>
-            <p>Dans le cadre de notre activité, nous avons développé une nouvelle prestation dédiée à la recherche de bénéficiaires d'actifs non réclamés.</p>
-            <p>Votre étude s'est chargée de régler la succession de {person_full_name} dont l'acte de notoriété a été établi le {person_don}. Toutefois, d'après nos recherches, il est probable que des fonds non connus par la famille n'aient pas été transmis aux héritiers. Nous n'en connaissons, pour le moment, ni le support (par ex. compte bancaire, assurance vie, plan épargne retraite, épargne salariale) ni le montant. Ces montants sont généralement limités (en moyenne 500€ sur les 500 dossiers traités à l'étude l'an dernier), mais il nous arrive de retrouver des montants plus conséquents.</p>
-            <p>Ne pouvant nous mandater nous-mêmes, nous avons besoin de rentrer en contact avec les héritiers afin de proposer notre prestation pour obtenir les informations précitées et débloquer lesdits fonds. Ainsi, <b>pouvez-vous transmettre mes coordonnées à l'un des héritiers afin que ce dernier puisse revenir vers moi pour de plus amples renseignements ?</b></p>
-            <p>À titre informatif, sachez que :</p>
-            <ul>
-            <li>Si la succession est toujours ouverte, les fonds débloqués seront réintégrés déduits de nos honoraires</li>
-            <li>Si la succession est clôturée, les fonds seront directement reversés aux héritiers, et nous vous aviserons si le montant de ces derniers pourrait avoir un impact sur les droits.</li>
-            </ul>
-            <p>Nous tenons à souligner, conformément à la loi Eckert du 13 juin 2014, l'importance cruciale de l'information complète aux héritiers pour le règlement équitable des successions. Vous remerciant par avance de votre concours.</p>
-            <p>Bien cordialement,</p>
-        '''
+    
+    with open(resource_path('notary_email.html'), 'r', encoding="utf-8") as file:
+        html_template = file.read()
+    message_html = html_template.format(
+        notary_last_name = notary_last_name,
+        person_full_name = person_full_name,
+        person_don = person_don,
+    )
     message.attach(MIMEText(message_html + user.signature, 'html'))
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
@@ -256,25 +253,17 @@ def create_notary_message(sender: str, to: str, person_full_name: str, person_la
 
 def create_client_message(sender: str, to: str, person_full_name: str, amount_found_by_us: str, amount_with_tex: str, amount_after_fee: str):
     message = MIMEMultipart()
-    message['From'] = f"Klero Genealogy <{sender}>"
+    message['From'] = f"Klero Genealogie <{sender}>"
     message['To'] = to
     message['Subject'] = f'Retour sur actifs débloqués - {person_full_name}'
-    message_html = f'''
-            <p>Bonjour,</p>
-            <p>Je reviens vers vous concernant les actifs au nom de {person_full_name}.</p>
-            <p>Suite au retour du notaire, je vous informe que les fonds débloqués s'élèvent à {amount_found_by_us} (voir pièce jointe).</p>
-            <p>Conformément au contrat précédemment signé, nos honoraires sont de {amount_with_tex} TTC de sorte que la somme vous revenant est de {amount_after_fee}.</p>
-            <p>Au regard des articles 11 et 12 du contrat, deux options s'offrent à vous :</p>
-            <ul>
-                <li>Récupérer ces fonds auquel cas il convient de nous faire parvenir votre RIB par mail ou par courrier. Nous procéderons à une vérification avant tout envoi des fonds</li>
-                <li>Faire don de la somme à une association de notre choix. Dans cette hypothèse, il convient impérativement  de nous donner votre accord par écrit en réponse à ce mail</li>
-            </ul>
-            <p>Nous vous informons qu'en cas de non retour de votre part sur votre choix dans un délai de deux mois à compter de la réception de ce mail, nous verserons automatiquement les fonds à une association.</p>
-            <p>Conformément au RGPD, nous vous informons que nous supprimerons à la clôture du dossier de manière sécurisée la copie de votre RIB.</p>
-            <p>Je reste à votre disposition pour répondre à d'éventuelles questions par téléphone au 07.45.25.93.99.</p>
-            <p>Vous remerciant par avance pour votre retour,</p>
-            <p>Bien cordialement,</p>
-        '''
+    with open(resource_path('client_email.html'), 'r', encoding="utf-8") as file:
+        html_template = file.read()
+    message_html = html_template.format(
+        person_full_name = person_full_name,
+        amount_found_by_us = amount_found_by_us,
+        amount_with_tex = amount_with_tex,
+        amount_after_fee =amount_after_fee
+    )
     message.attach(MIMEText(message_html + user.signature, 'html'))
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
@@ -282,18 +271,14 @@ def create_client_message(sender: str, to: str, person_full_name: str, amount_fo
 
 def create_facture_message(sender: str, to: str, person_full_name: str):
     message = MIMEMultipart()
-    if sender:
-        message['From'] = f"Klero Genealogy <{sender}>"
+    message['From'] = f"Klero Genealogie <{sender}>"
     message['To'] = to
     message['Subject'] = f'Clôture dossier {person_full_name}'
-    message_html = f'''
-            <p>Bonjour,</p>
-            <p>Je reviens vers vous concernant les actifs au nom de {person_full_name}</p>
-            <p>Je vous informe que l'étude vous a transmis les fonds vous revenant déduit de nos honoraires. Pour rappel, en cas de pluralité d'héritiers, vous vous êtes engagés, en signant le contrat, à faire le partage desdits fonds entre les différents héritiers.</p>
-            <p>Notre mission étant désormais terminée, je vous remercie de votre confiance et vous invite à laisser un avis sur la page Google de LD Généalogie. En effet, comme vous l'étiez probablement lors de notre premier échange, les bénéficiaires sont souvent méfiants vis-à-vis de notre démarche. Ainsi, votre témoignage pourra les rassurer et nous permettre de débloquer et restituer d'avantage de fonds.</p>
-            <p>Vous souhaitant une bonne continuation,</p>
-            <p>Bien cordialement,</p>
-        '''
+    with open(resource_path('client_email.html'), 'r', encoding="utf-8") as file:
+        html_template = file.read()
+    message_html = html_template.format(
+        person_full_name = person_full_name,
+    )
     message.attach(MIMEText(message_html + user.signature, 'html'))
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
@@ -662,7 +647,7 @@ if __name__ == "__main__":
         gc = gspread.authorize(user.creds)
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
-        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)   
+        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)  
         main()
     except Exception as e:
         print(e)
