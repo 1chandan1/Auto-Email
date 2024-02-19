@@ -30,9 +30,6 @@ jobs:
 
       - name: Create Date File
         run: python -c "import datetime; print(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'))" > date.txt
-        
-      - name: Change Version File
-        run: python control_version.py
 
       - name: Build EXE
         run: |
