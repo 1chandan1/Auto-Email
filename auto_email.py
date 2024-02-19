@@ -639,6 +639,8 @@ client_secret_info = json.loads(client_secret)
 NOTARY_SHEET_KEY = "1NBWDbmuXHKr6yWsEvxJhio4uaUPKol6_dJvtgKJCDhc"
 INVOICE_SHEET_KEY = "1KlKBSzyFDprXy_L8Gy0UDfRfMdmpl-YZnZErg0yiATg"
 locale.setlocale(locale.LC_TIME, 'fr_FR')
+
+
 if __name__ == "__main__":
     try:
         check_for_updates()
@@ -648,6 +650,7 @@ if __name__ == "__main__":
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
         scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)  
+        # send_email(create_notary_message(user.email,"chandanhans2003@gmail.com","test","test","test","test"))
         main()
     except Exception as e:
         print(e)
