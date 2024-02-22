@@ -356,17 +356,17 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             if not notary_sheet_index:
                 worksheet.update_acell(f"L{index}", "New Notary added")
                 first_col = notary_worksheet.col_values(2)  # Get all values in the first column
-                try:
+                if all_row_with_same_email:
                     temp_row = notary_worksheet.row_values(all_row_with_same_email[0])
                     temp_status = temp_row[10]
                     temp_date = temp_row[11]
                     notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, temp_status, temp_date]
-                except:
+                else:
                     notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, "Not contacted", ""]
                 notary_sheet_index = len(first_col) + 1
-
                 notary_worksheet.insert_row(
                     notary_sheet_row, index=notary_sheet_index, inherit_from_before=True)
+                all_row_with_same_email.append(notary_sheet_index)
 
             if notary_sheet_row[10] == "Not cooperating":
                 worksheet.update_acell(f"L{index}", "Not cooperating")
@@ -384,7 +384,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
             print_center("Sending All Emails\n\n")
             print(f"Index-File Row    :    {notary_sheet_index}")
             print(f"Contact Date      :    {contact_date}\n")
-            print(f"Target Sheet Row  :    {index + 1}\n")
+            print(f"Target Sheet Row  :    {index}\n")
             print(f"Person Name       :    {person_full_name}")
             print(f"Person Last Name  :    {person_last_name}\n")
             print(f"Notary Name       :    {notary_full_name}")
