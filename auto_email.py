@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from time import sleep
-from updater import check_for_updates
+from vcs import check_for_updates
 
 import gspread
 from docx import Document
