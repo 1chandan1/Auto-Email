@@ -421,7 +421,12 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                         previous_scheduled_date = scheduled_data[7]
                         break
                 new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
+                next_row =len(scheduling_worksheet.get_all_values())+1
+                notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1))"
+                last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(H1:H{next_row-1}); H1:H{next_row-1}=H{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
                 scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,user.email,notary_email,new_date])
+                scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
+                scheduling_worksheet.update_acell(f"I{next_row}",last_case_formula)
                 worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
                 worksheet.update_acell(f"K{index}", "draft")
                 print(f"Scheduled on {new_date}")
@@ -643,15 +648,15 @@ locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 if __name__ == "__main__":
     try:
-        check_for_updates()
+        # check_for_updates()
         print("Running the latest version.")
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
-        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)  
+        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424) 
         # send_email(create_notary_message(user.email,"chandanhans2003@gmail.com","test","test","test","test"))
-        main()
+        # main()
     except Exception as e:
         print(e)
         print("\n\n!! Error !!")
