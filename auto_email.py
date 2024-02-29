@@ -656,7 +656,7 @@ if __name__ == "__main__":
         notary_worksheet = notary_sheet.get_worksheet(0)
         scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424) 
         # send_email(create_notary_message(user.email,"chandanhans2003@gmail.com","test","test","test","test"))
-        # main()
+        main()
     except Exception as e:
         print(e)
         print("\n\n!! Error !!")
