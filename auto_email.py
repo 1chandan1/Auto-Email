@@ -424,9 +424,10 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 next_row =len(all_scheduled_data)+1
                 notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1))"
                 last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
-                scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,user.email,notary_email,new_date])
+                scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,user.email,notary_email,None])
                 scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
-                scheduling_worksheet.update_acell(f"I{next_row}",last_case_formula)
+                scheduling_worksheet.update_acell(f"G{next_row}",last_case_formula)
+                scheduling_worksheet.update_acell(f"J{next_row}",new_date)
                 worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
                 worksheet.update_acell(f"K{index}", "draft")
                 print(f"Scheduled on {new_date}")
