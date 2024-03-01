@@ -421,10 +421,10 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                         previous_scheduled_date = scheduled_data[7]
                         break
                 new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
-                next_row =len(scheduling_worksheet.get_all_values())+1
+                next_row =len(all_scheduled_data)+1
                 notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1))"
-                last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(H1:H{next_row-1}); H1:H{next_row-1}=H{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
-                scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,user.email,notary_email,new_date])
+                last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
+                scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,user.email,notary_email,new_date])
                 scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
                 scheduling_worksheet.update_acell(f"I{next_row}",last_case_formula)
                 worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
