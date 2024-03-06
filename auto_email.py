@@ -422,16 +422,17 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     all_scheduled_data = scheduling_worksheet.get_all_values()
                     for scheduled_data in all_scheduled_data[::-1]:
                         if notary_email in scheduled_data and scheduled_data[3]=="Scheduled":
-                            previous_scheduled_date = scheduled_data[7]
+                            previous_scheduled_date = scheduled_data[9]
                             break
                     try:
                         new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
                     except:
                         new_date = (datetime.now().date() + relativedelta(months=+2)).strftime("%d/%m/%Y")
                     next_row =len(all_scheduled_data)+1
-                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(G{next_row}; 'Notaire annuaire'!J:J; 0);1))"
+                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1))"
                     last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
-                    scheduling_worksheet.append_row([notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,user.email,notary_email,None])
+                    new_schedule_row = [notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,None,user.email,notary_email,None]
+                    scheduling_worksheet.append_row(new_schedule_row)
                     scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
                     scheduling_worksheet.update_acell(f"G{next_row}",last_case_formula)
                     scheduling_worksheet.update_acell(f"J{next_row}",new_date)
@@ -659,7 +660,7 @@ locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 if __name__ == "__main__":
     try:
-        check_for_updates()
+        check_for_updates() 
         print("Running the latest version.")
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
