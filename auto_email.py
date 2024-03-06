@@ -398,8 +398,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 notary_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
                 
                 if notary_sheet_row[10] == "Not contacted":
-                    # countdown("Sending Email in", random.randint(120, 180))
-                    countdown("Sending Email in", 5)
+                    countdown("Sending Email in", random.randint(120, 180))
                     print("\nSending Email...")
                     for _ in range(3):
                         message = create_notary_message(user.email, notary_email, person_full_name, person_last_name, notary_last_name, person_don)
@@ -660,7 +659,7 @@ locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 if __name__ == "__main__":
     try:
-        # check_for_updates()
+        check_for_updates()
         print("Running the latest version.")
         user = GoogleServices()
         gc = gspread.authorize(user.creds)
