@@ -36,6 +36,13 @@ jobs:
         working-directory: ./  # Modify this path if necessary
         # Note: Ensure you have a setup.py file configured for py2app
 
+      - name: Archive App
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS-App
+          path: dist/*.app
+          # Adjust the path according to your project structure
+
       - name: Commit and Push App to Repo (Optional)
         run: |
           git config --global user.email "chandanhans2003@gmail.com"
