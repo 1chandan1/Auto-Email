@@ -21,7 +21,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install py2app
-          pip install -r requirements.txt
+          pip install -r requirements2.txt
         working-directory: ./  # Modify this path if necessary
 
       - name: Create .env File
