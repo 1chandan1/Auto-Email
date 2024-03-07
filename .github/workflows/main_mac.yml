@@ -42,12 +42,3 @@ jobs:
           name: macOS-App
           path: dist/*.app
           # Adjust the path according to your project structure
-
-      - name: Commit and Push App to Repo (Optional)
-        run: |
-          git config --global user.email "chandanhans2003@gmail.com"
-          git config --global user.name "ChandanHans"
-          git add -f dist/*.app
-          git commit -m "Update macOS App"
-          git push
-        # This step is optional and can be used if you want to commit the built app back to the repository.
