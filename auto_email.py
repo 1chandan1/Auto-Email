@@ -409,7 +409,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                             for row_index in all_row_with_same_email:
                                 notary_worksheet.update_acell(f"L{row_index}", today_date)
                                 notary_worksheet.update_acell(f"K{row_index}", "Contacted / pending answer")
-                                notary_worksheet.update_acell(f"O{row_index}", person_full_name)
+                                notary_worksheet.update_acell(f"N{row_index}", person_full_name)
                             print("\nSuccess")
                             break
                         else:
