@@ -1,0 +1,46 @@
+name: Create macOS App
+
+on:
+  push:
+    branches:
+      - main  # Adjust to your branch name
+
+jobs:
+  build-macos-app:
+    runs-on: macos-latest  # Use a macOS runner
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.0  # Specify the Python version you need
+
+      - name: Install Dependencies
+        run: |
+          pip install py2app
+          pip install -r requirements.txt
+        working-directory: ./  # Modify this path if necessary
+
+      - name: Create .env File
+        run: echo 'CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}' > .env
+
+      - name: Create Date File
+        run: python -c "import datetime; print(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'))" > date.txt
+
+      - name: Build macOS App
+        run: |
+          python setup.py py2app
+        working-directory: ./  # Modify this path if necessary
+        # Note: Ensure you have a setup.py file configured for py2app
+
+      - name: Commit and Push App to Repo (Optional)
+        run: |
+          git config --global user.email "chandanhans2003@gmail.com"
+          git config --global user.name "ChandanHans"
+          git add -f dist/*.app
+          git commit -m "Update macOS App"
+          git push
+        # This step is optional and can be used if you want to commit the built app back to the repository.
