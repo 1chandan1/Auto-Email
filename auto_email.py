@@ -379,7 +379,9 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 clear_display()
                 print("\n")
                 print_center(
-                    f"-------------------  Account : {user.email}  -------------------")
+                    f"  Account : {user.email}  ")
+                print_center(
+                    f"  Sender : {user.sender_name}  ")
                 print()
                 print_center("Notary Email")
                 print()
@@ -468,7 +470,9 @@ def notary_email():
     clear_display()
     print("\n")
     print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+        f"  Account : {user.email}  ")
+    print_center(
+        f"  Sender : {user.sender_name}  ")
     print()
     print_center("Notary Email")
     print("\n")
@@ -488,7 +492,9 @@ def notary_email():
     clear_display()
     print("\n")
     print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+        f"  Account : {user.email}  ")
+    print_center(
+        f"  Sender : {user.sender_name}  ")
     print()
     print_center("Notary Email")
     print()
@@ -516,8 +522,9 @@ def notary_email():
         msvcrt.getch()
     clear_display()
     print("\n")
+    print_center(f"  Account : {user.email}  ")
     print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+        f"  Sender : {user.sender_name}  ")
     print()
     print_center("Notary Email")
     print()
@@ -528,7 +535,9 @@ def notary_email():
 def client_email():
     clear_display()
     print("\n")
-    print_center(f"-------------------  Account : {user.email}  -------------------")
+    print_center(f"  Account : {user.email}  ")
+    print_center(
+        f"  Sender : {user.sender_name}  ")
     print()
     print_center("Client Email")
     print()
@@ -571,7 +580,9 @@ def facturation():
     clear_display()
     print("\n")
     print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+        f"  Account : {user.email}  ")
+    print_center(
+        f"  Sender : {user.sender_name}  ")
     print()
     print_center("Facturation")
     print()
@@ -621,7 +632,9 @@ def main():
     clear_display()
     print("\n")
     print_center(
-        f"-------------------  Account : {user.email}  -------------------")
+        f"  Account : {user.email}  ")
+    print_center(
+        f"  Sender : {user.sender_name}  ")
     print("\n")
     print("1. Notary Email")
     print("2. Client Email")
@@ -667,7 +680,6 @@ if __name__ == "__main__":
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
         scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424) 
-        # send_email(create_notary_message(user.email,"chandanhans2003@gmail.com","test","test","test","test"))
         main()
     except Exception as e:
         print(e)
