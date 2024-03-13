@@ -33,7 +33,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "attachment.pdf:." --add-data "date.txt:." --add-data ".env:." --add-data "template.docx:." --add-data "client_email.html:." --add-data "facture_email.html:." --add-data "notary_email.html:." --add-data "updater.exe:." --add-data "signature.html:." --distpath ./output "auto_email.py"
+          pyinstaller --noconfirm --onefile --console --icon "bot.ico" --name "AutoEmail" --clean --add-data "static/" --add-data "date.txt:." --add-data ".env:."  --add-data "updater.exe:." --distpath ./output "auto_email.py"
         working-directory: ./  # Modify this path
 
       - name: Copy EXE to GitHub workspace

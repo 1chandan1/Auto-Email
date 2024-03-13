@@ -143,7 +143,7 @@ class GoogleServices:
             return self.gmail
         
     def get_signature(self):
-        with open(resource_path('signature.html'), 'r', encoding="utf-8") as file:
+        with open(resource_path('static/signature.html'), 'r', encoding="utf-8") as file:
             html_template = file.read()
         
         signature = html_template.format(
@@ -239,7 +239,7 @@ def create_notary_message(sender: str, to: str, person_full_name: str, person_la
     message['To'] = to
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
     
-    with open(resource_path('notary_email.html'), 'r', encoding="utf-8") as file:
+    with open(resource_path('static/notary_email.html'), 'r', encoding="utf-8") as file:
         html_template = file.read()
     message_html = html_template.format(
         notary_last_name = notary_last_name,
@@ -256,7 +256,7 @@ def create_client_message(sender: str, to: str, person_full_name: str, amount_fo
     message['From'] = f"Klero Genealogie <{sender}>"
     message['To'] = to
     message['Subject'] = f'Retour sur actifs débloqués - {person_full_name}'
-    with open(resource_path('client_email.html'), 'r', encoding="utf-8") as file:
+    with open(resource_path('static/client_email.html'), 'r', encoding="utf-8") as file:
         html_template = file.read()
     message_html = html_template.format(
         person_full_name = person_full_name,
@@ -274,7 +274,7 @@ def create_facture_message(sender: str, to: str, person_full_name: str):
     message['From'] = f"Klero Genealogie <{sender}>"
     message['To'] = to
     message['Subject'] = f'Clôture dossier {person_full_name}'
-    with open(resource_path('client_email.html'), 'r', encoding="utf-8") as file:
+    with open(resource_path('static/client_email.html'), 'r', encoding="utf-8") as file:
         html_template = file.read()
     message_html = html_template.format(
         person_full_name = person_full_name,
@@ -287,7 +287,7 @@ def create_facture_message(sender: str, to: str, person_full_name: str):
 def create_facture_files(name, facture_number, ht, tva, tcc, paid_date):
     if not os.path.exists("Invoice"):
         os.makedirs("Invoice")
-    doc = Document(resource_path("template.docx"))
+    doc = Document(resource_path("static/template.docx"))
     date = datetime.now().date().strftime('%d %B %Y')
     text_replacements = {
         "(DATE)": date,

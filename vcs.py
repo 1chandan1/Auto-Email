@@ -34,7 +34,10 @@ def get_remote_version_date():
 def check_for_updates():
     """Check if an update is available based on the latest commit date."""
     print("Checking for updates...")
-    local_version_date = get_local_version_date()
+    try:
+        local_version_date = get_local_version_date()
+    except:
+        return
     remote_version_date = get_remote_version_date()
 
     if remote_version_date is None:
@@ -43,5 +46,8 @@ def check_for_updates():
     time_difference = remote_version_date - local_version_date
     # Check if the difference is greater than 2 minutes
     if time_difference > datetime.timedelta(minutes=2):
-        subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, GITHUB_EXE_URL])
+        try:
+            subprocess.Popen([UPDATER_EXE_PATH, EXE_PATH, GITHUB_EXE_URL])
+        except:
+            input("ERROR : Contact Chandan")
         sys.exit()
