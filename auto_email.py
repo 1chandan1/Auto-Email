@@ -1,13 +1,13 @@
 import base64
 import json
 import locale
-import msvcrt
 import os
 import pickle
 import random
 import re
 import shutil
 import sys
+from getch import getch
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from email.mime.multipart import MIMEMultipart
@@ -58,14 +58,12 @@ class GoogleServices:
             print("\n")
             print_center("Do you want to use it (y/n) : ")
             while True:
-                if msvcrt.kbhit():
-                    choice = msvcrt.getch().decode('utf-8').lower()
-                    if choice == "y" or choice == "n":
-                        print("\nLoading...")
-                        break
+                choice = getch().decode().lower()
+                if choice == "y" or choice == "n":
+                    print("\nLoading...")
+                    break
                 sleep(0.1)
-            while msvcrt.kbhit():
-                msvcrt.getch()
+                
             if choice == "n":
                 self.google_auth(True)
             if self.gmail in self.interns.keys():
@@ -505,21 +503,19 @@ def notary_email():
     print("q. Main menu")
     print("\nEnter your choice (1/2/q): ")
     while True:
-        if msvcrt.kbhit():
-            choice = msvcrt.getch().decode('utf-8').lower()
-            if choice == "1":
-                print("\nLoading...")
-                send_notary_emails(spreadsheet)
-                break
-            elif choice == "2":
-                notary_email()
-                break
-            elif choice == "q":
-                main()
-                break
-        sleep(0.1)
-    while msvcrt.kbhit():
-        msvcrt.getch()
+        choice = getch().decode().lower()
+        if choice == "1":
+            print("\nLoading...")
+            send_notary_emails(spreadsheet)
+            break
+        elif choice == "2":
+            notary_email()
+            break
+        elif choice == "q":
+            main()
+            break
+    sleep(0.1)
+    
     clear_display()
     print("\n")
     print_center(f"  Account : {user.email}  ")
@@ -641,23 +637,21 @@ def main():
     print("3. Facturation")
     print("\nEnter your choice (1/2/3): ")
     while True:
-        if msvcrt.kbhit():
-            choice = msvcrt.getch().decode('utf-8').lower()
-            if choice == "1":
-                print("\nLoading...")
-                notary_email()
-                break
-            elif choice == "2":
-                print("\nLoading...")
-                client_email()
-                break
-            elif choice == "3":
-                print("\nLoading...")
-                facturation()
-                break
-        sleep(0.1)
-    while msvcrt.kbhit():
-        msvcrt.getch()
+        choice = getch().decode().lower()
+        if choice == "1":
+            print("\nLoading...")
+            notary_email()
+            break
+        elif choice == "2":
+            print("\nLoading...")
+            client_email()
+            break
+        elif choice == "3":
+            print("\nLoading...")
+            facturation()
+            break
+    sleep(0.1)
+
     main()
 
 

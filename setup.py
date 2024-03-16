@@ -7,7 +7,8 @@ DATA_FILES = [
     ("static", ["static/"]),
 ]
 OPTIONS = {
-    "argv_emulation": False,  # Set to True if you want to emulate command line arguments for GUI apps
+    "argv_emulation": True,
+    'packages': ['charset_normalizer'],
     "iconfile": "static/bot.ico",  # macOS uses .icns format for icons, you may need to convert your .ico file
     "plist": {
         "CFBundleName": "AutoEmail",
@@ -24,5 +25,5 @@ setup(
     name="AutoEmail",
     data_files=DATA_FILES,
     options={"py2app": OPTIONS},
-    setup_requires=["py2app"],
+    setup_requires=["py2app"]
 )
