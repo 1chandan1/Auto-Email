@@ -50,3 +50,4 @@ whichcraft==0.6.1
 zope.event==5.0
 zope.interface==6.1
 python-dateutil==2.8.2
+py-getch==1.0.1
