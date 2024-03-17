@@ -425,9 +425,16 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                             previous_scheduled_date = scheduled_data[9]
                             break
                     try:
-                        new_date = (datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)).strftime("%d/%m/%Y")
+                        new_date = datetime.strptime(previous_scheduled_date, "%d/%m/%Y") + relativedelta(months=+2)
                     except:
-                        new_date = (datetime.now().date() + relativedelta(months=+2)).strftime("%d/%m/%Y")
+                        new_date = datetime.now().date() + relativedelta(months=+2)
+                    
+                    if new_date.weekday() == 5:
+                        new_date += relativedelta(days=2)
+                    elif new_date.weekday() == 6:
+                        new_date += relativedelta(days=1)
+                        
+                    new_date_text = new_date.strftime("%d/%m/%Y")
                     next_row =len(all_scheduled_data)+1
                     notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1))"
                     last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
@@ -435,10 +442,10 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     scheduling_worksheet.append_row(new_schedule_row)
                     scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
                     scheduling_worksheet.update_acell(f"G{next_row}",last_case_formula)
-                    scheduling_worksheet.update_acell(f"J{next_row}",new_date)
-                    worksheet.update_acell(f"L{index}", f"Scheduled on {new_date}")
+                    scheduling_worksheet.update_acell(f"J{next_row}",new_date_text)
+                    worksheet.update_acell(f"L{index}", f"Scheduled on {new_date_text}")
                     worksheet.update_acell(f"K{index}", "draft")
-                    print(f"Scheduled on {new_date}")
+                    print(f"Scheduled on {new_date_text}")
         except Exception as e:
             print(e)
             countdown("Next",5)
