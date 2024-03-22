@@ -353,18 +353,18 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 notary_sheet_index, notary_sheet_row = get_row_by_name(
                     notary_first_name, notary_last_name)
                 if not notary_sheet_index:
-                    first_col = notary_worksheet.col_values(2)  # Get all values in the first column
+                    all_data = notary_worksheet.get_all_values()  # Get all values in the first column
+                    temp_status = "Not contacted"
+                    temp_date = ""
                     if all_row_with_same_email:
                         try:
                             temp_row = notary_worksheet.row_values(all_row_with_same_email[0])
                             temp_status = temp_row[10]
                             temp_date = temp_row[11]
-                            notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, temp_status, temp_date]
                         except:
-                            notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, "Not contacted", ""]
-                    else:
-                        notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, "Not contacted", ""]
-                    notary_sheet_index = len(first_col) + 1
+                            pass
+                    notary_sheet_row = ["", notary_first_name, notary_last_name, "", "","", row[6], row[7], row[9], notary_email, temp_status, temp_date,"","","",""]
+                    notary_sheet_index = len(all_data) + 1
                     notary_worksheet.insert_row(
                         notary_sheet_row, index=notary_sheet_index, inherit_from_before=True)
                     worksheet.update_acell(f"L{index}", "New Notary added")
@@ -410,6 +410,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                                 notary_worksheet.update_acell(f"L{row_index}", today_date)
                                 notary_worksheet.update_acell(f"K{row_index}", "Contacted / pending answer")
                                 notary_worksheet.update_acell(f"N{row_index}", person_full_name)
+                                notary_worksheet.update_acell(f"P{row_index}", user.email)
                             print("\nSuccess")
                             break
                         else:
@@ -433,12 +434,18 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                         new_date += relativedelta(days=2)
                     elif new_date.weekday() == 6:
                         new_date += relativedelta(days=1)
-                        
+                    
+                    try:
+                        previous_sender = notary_sheet_row[15]
+                        if not previous_sender:
+                            previous_sender = user.email
+                    except:
+                        previous_sender = user.email
                     new_date_text = new_date.strftime("%d/%m/%Y")
                     next_row =len(all_scheduled_data)+1
                     notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1))"
                     last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
-                    new_schedule_row = [notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,None,user.email,notary_email,None]
+                    new_schedule_row = [notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,None,previous_sender,notary_email,None]
                     scheduling_worksheet.append_row(new_schedule_row)
                     scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
                     scheduling_worksheet.update_acell(f"G{next_row}",last_case_formula)
