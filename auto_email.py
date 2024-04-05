@@ -86,10 +86,13 @@ class GoogleServices:
         if new:
             self.creds = None
         else:
-            # The file secret_token.pickle stores the user's access and refresh tokens
-            if os.path.exists('secret_token.pickle'):
-                with open('secret_token.pickle', 'rb') as token:
-                    self.creds = pickle.load(token)
+            try:
+                # The file secret_token.pickle stores the user's access and refresh tokens
+                if os.path.exists('secret_token.pickle'):
+                    with open('secret_token.pickle', 'rb') as token:
+                        self.creds = pickle.load(token)
+            except Exception as e:
+                pass
 
         # If there are no (valid) credentials available, let the user log in
         if not self.creds or not self.creds.valid:
@@ -687,7 +690,9 @@ if __name__ == "__main__":
         gc = gspread.authorize(user.creds)
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
-        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424) 
+        scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)
+        # a = create_notary_message(user.email,"b00527769@essec.edu","Test","Test","Test","Test")
+        # send_email(a)
         main()
     except Exception as e:
         print(e)
