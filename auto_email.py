@@ -353,6 +353,8 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                 if not notary_last_name.strip():
                     continue
                 person_don = row[4]
+                if not person_don or person_don == "N/A":
+                    continue
                 notary_sheet_index, notary_sheet_row = get_row_by_name(
                     notary_first_name, notary_last_name)
                 if not notary_sheet_index:
@@ -450,6 +452,7 @@ def send_notary_emails(spreadsheet: gspread.Spreadsheet):
                     last_case_formula = f'''=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))'''
                     new_schedule_row = [notary_first_name,notary_last_name,None,"Scheduled",person_full_name,person_don,None,previous_sender,notary_email,None]
                     scheduling_worksheet.append_row(new_schedule_row)
+                    sleep(1)
                     scheduling_worksheet.update_acell(f"C{next_row}",notary_status_formula)
                     scheduling_worksheet.update_acell(f"G{next_row}",last_case_formula)
                     scheduling_worksheet.update_acell(f"J{next_row}",new_date_text)
@@ -691,8 +694,6 @@ if __name__ == "__main__":
         notary_sheet = gc.open_by_key(NOTARY_SHEET_KEY)
         notary_worksheet = notary_sheet.get_worksheet(0)
         scheduling_worksheet = notary_sheet.get_worksheet_by_id(1111177424)
-        # a = create_notary_message(user.email,"b00527769@essec.edu","Test","Test","Test","Test")
-        # send_email(a)
         main()
     except Exception as e:
         print(e)
