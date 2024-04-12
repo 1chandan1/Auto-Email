@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 from time import sleep
 from vcs import check_for_updates
 
+
 import gspread
 from docx import Document
 from docx2pdf import convert
@@ -58,7 +59,10 @@ class GoogleServices:
             print("\n")
             print_center("Do you want to use it (y/n) : ")
             while True:
-                choice = getch().decode().lower()
+                try:
+                    choice = getch().decode().lower()
+                except:
+                    choice = getch().lower()
                 if choice == "y" or choice == "n":
                     print("\nLoading...")
                     break
@@ -523,7 +527,10 @@ def notary_email():
     print("q. Main menu")
     print("\nEnter your choice (1/2/q): ")
     while True:
-        choice = getch().decode().lower()
+        try:
+            choice = getch().decode().lower()
+        except:
+            choice = getch().lower()
         if choice == "1":
             print("\nLoading...")
             send_notary_emails(spreadsheet)
@@ -657,7 +664,10 @@ def main():
     print("3. Facturation")
     print("\nEnter your choice (1/2/3): ")
     while True:
-        choice = getch().decode().lower()
+        try:
+            choice = getch().decode().lower()
+        except:
+            choice = getch().lower()
         if choice == "1":
             print("\nLoading...")
             notary_email()
