@@ -1,3 +1,4 @@
+import base64
 import os
 import sys
 import socket
@@ -13,11 +14,10 @@ def resource_path(relative_path):
 
 # Constants
 GITHUB_EXE_URL = 'https://raw.githubusercontent.com/ChandanHans/Auto-email/main/output/AutoEmail.exe'
-GITHUB_PY_URL = 'https://raw.githubusercontent.com/ChandanHans/Auto-email/main/auto_email.py'
-REPO_API_URL = 'https://api.github.com/repos/ChandanHans/Auto-email/commits?path=output/AutoEmail.exe'
-LOCAL_DATE_PATH = resource_path("date.txt")  # Path to the local version file
-UPDATER_EXE_PATH = resource_path("updater.exe")  # The path to your updater executable
-MAIN_FILE = 'auto_email.py'
+REPO_API_URL = f"https://api.github.com/repos/ChandanHans/Auto-email/git/trees/main?recursive=1"
+REPO_EXE_API_URL = 'https://api.github.com/repos/ChandanHans/Auto-email/commits?path=output/AutoEmail.exe'
+LOCAL_DATE_PATH = resource_path("date.txt")
+UPDATER_EXE_PATH = resource_path("updater.exe")
 EXE_PATH = sys.executable
 
 def get_local_version_date():
@@ -27,31 +27,50 @@ def get_local_version_date():
 
 def get_remote_version_date():
     """Fetch the latest commit date of the version file from the GitHub repository."""
-    response = requests.get(REPO_API_URL)
+    response = requests.get(REPO_EXE_API_URL)
     commits = response.json()
     if not commits:
         print("No commits found for the version file.")
         return None
     return datetime.datetime.strptime(commits[0]['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ')
-
-def get_local_script_content():
-    with open(MAIN_FILE, 'r', encoding="utf-8") as file:
-        content = file.read()
-    return content
-
-def get_remote_script_content():
-    response = requests.get(GITHUB_PY_URL)
-    content = response.text
-    return content
-
-def write_new_script(new_script):
-    with open(MAIN_FILE, 'w', encoding="utf-8") as file:
-        file.write(new_script)
         
 def is_my_machine():
     my_machine_list = ['ASUS-CHANDAN']
     return socket.gethostname() in my_machine_list
     
+def update_local_files():
+    updated = False
+    response = requests.get(REPO_API_URL)
+    if response.status_code != 200:
+        print(f"Failed to fetch repository data: {response.status_code}")
+        return
+
+    files = response.json().get('tree', [])
+    python_files = [file for file in files if file['path'].endswith('.py')]
+    for file in python_files:
+        file_url = file['url']
+        download_response = requests.get(file_url)
+        if download_response.status_code == 200:
+            file_content_encoded = download_response.json()['content']
+            file_content = base64.b64decode(file_content_encoded).decode('utf-8')  # Decode from base64
+            file_path = os.path.join(os.getcwd(),file['path'])
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            local_content = ""
+            try:
+                with open(file_path, 'r', encoding="utf-8") as f:
+                    local_content = f.read()
+            except:
+                pass
+            if local_content != file_content:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(file_content)
+                updated = True
+                print(f"Updated: {file['path']}")
+        else:
+            print(f"Failed to download {file['path']}: {download_response.status_code}")
+    return updated
+
+
 def check_for_updates():
     """Check if an update is available based on the latest commit date."""
     print("Checking for updates...")
@@ -74,10 +93,7 @@ def check_for_updates():
                 input("ERROR : Contact Chandan")
             sys.exit()
     else:
-        local_script_content = get_local_script_content()
-        remote_script_content = get_remote_script_content()
-        if not ((local_script_content == remote_script_content) or is_my_machine()):
-            write_new_script(remote_script_content)
+        if not is_my_machine() and update_local_files():
             print("Script Updated")
             input("Please close this app and restart it again")
             sys.exit()
