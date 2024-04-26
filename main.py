@@ -1,10 +1,9 @@
-
-
 from client_email import client_email
 from facturation import facturation
 from google_services import GoogleServices
 from notary_email import notary_email
 from upload_case import upload_case
+from vcs import check_for_updates
 from utils import *
 
 
@@ -37,6 +36,7 @@ def start(user : GoogleServices):
     start(user)
 
 def main():
+    check_for_updates()
     user = GoogleServices()
     start(user)
 
