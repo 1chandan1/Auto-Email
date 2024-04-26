@@ -3,6 +3,7 @@ import pickle
 from time import sleep
 
 import gspread
+from googleapiclient.http import MediaFileUpload
 from email.mime.multipart import MIMEMultipart
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -161,3 +162,52 @@ class GoogleServices:
         print_center(
             f"  Sender : {self.sender_name}  ")
         print()
+        
+    def create_folder(self, name, parent_id):
+        """Create a folder on Google Drive or use an existing one, and return its ID."""
+        # Search for existing folder with the same name in the specified parent directory
+        query = f"name='{name}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        response = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = response.get('files', [])
+
+        if files:
+            return files[0]['id']
+        else:
+            folder_metadata = {
+                'name': name,
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [parent_id]
+            }
+            folder = self.drive_service.files().create(body=folder_metadata, fields='id').execute()
+            return folder.get('id')
+
+
+    def upload_folder(self, folder_path, parent_folder_id):
+        folder_name = os.path.basename(folder_path)
+        new_folder_id = self.create_folder(folder_name, parent_folder_id)
+        print(f"Folder --- {folder_name}")
+        for item in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, item)
+            if os.path.isfile(file_path):
+                self.upload_file(file_path, new_folder_id)
+    
+    def upload_file(self, file_path, folder_id):
+        """Upload a file to Google Drive within the specified folder, skip if file already exists."""
+        file_name = os.path.basename(file_path)
+        # Search for existing file with the same name in the specified folder
+        query = f"name='{file_name}' and '{folder_id}' in parents and trashed=false"
+        response = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = response.get('files', [])
+
+        if not files:
+            # No existing file, proceed with upload
+            file_metadata = {
+                'name': file_name,
+                'parents': [folder_id]
+            }
+            media = MediaFileUpload(file_path, resumable=True)
+            file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            print(f"Upload          |- {file_name}")
+        else:
+            # File already exists, skip the upload
+            print(f"Skip            |- {file_name}")

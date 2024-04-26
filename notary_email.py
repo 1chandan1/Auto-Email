@@ -47,7 +47,7 @@ def notary_email(user: GoogleServices):
         choice = getch()
         if choice == "1":
             print("\nLoading...")
-            send_notary_emails(spreadsheet)
+            send_notary_emails(user, spreadsheet)
             user.print_details()
             print_center("Notary Email")
             print()
@@ -142,11 +142,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     worksheet.update_acell(f"L{index}", "Not cooperating")
                     continue
                 contact_date = notary_sheet_row[11]
-                clear_display()
-                print("\n")
-                print_center(f"  Account : {user.email}  ")
-                print_center(f"  Sender : {user.sender_name}  ")
-                print()
+                user.print_details()
                 print_center("Notary Email")
                 print()
                 print_center(f"Google Sheet : {spreadsheet.title}")
@@ -263,9 +259,9 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
 
 def get_fname_lname(full_name : str):
     words = str(full_name.strip()).split()
-    lname = " ".join([word for word in words if word.islower()])
+    lname = " ".join([word for word in words if word.isupper()])
     fname = full_name.replace(lname, "").strip()
-    return fname,lname
+    return fname, lname
 
 def is_valid_email(email):
     # Regular expression pattern for validating an email
