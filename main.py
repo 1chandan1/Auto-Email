@@ -16,6 +16,7 @@ def start(user : GoogleServices):
     print("\nEnter your choice (1/2/3/4): ")
     while True:
         choice = getch()
+        print(choice)
         if choice == "1":
             print("\nLoading...")
             notary_email(user)

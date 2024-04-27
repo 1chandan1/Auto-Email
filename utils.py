@@ -38,6 +38,10 @@ def getch():
         return pygetch().lower()
     
 def get_client_secret():
-    load_dotenv(dotenv_path=resource_path(".env"))
     client_secret = os.environ["CLIENT_SECRET"]
     return json.loads(client_secret)
+
+def get_gpt_key():
+    return os.environ["OPENAI_API_KEY"]
+
+load_dotenv(dotenv_path=resource_path(".env"))

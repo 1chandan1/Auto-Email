@@ -43,6 +43,7 @@ class GoogleServices:
             print_center("Do you want to use it (y/n) : ")
             while True:
                 choice = getch()
+                print(choice)
                 if choice == "y" or choice == "n":
                     print("\nLoading...")
                     break
@@ -211,3 +212,17 @@ class GoogleServices:
         else:
             # File already exists, skip the upload
             print(f"Skip            |- {file_name}")
+            
+    def delete_file_by_name(self, file_name, folder_id):
+        """Delete a file by name within the specified folder."""
+        query = f"name='{file_name}' and '{folder_id}' in parents and trashed=false"
+        response = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = response.get('files', [])
+
+        if files:
+            for file in files:
+                # Perform the deletion
+                self.drive_service.files().delete(fileId=file['id']).execute()
+                print(f"Deleted         |- {file_name}")
+        else:
+            print(f"File not found  |- {file_name}")

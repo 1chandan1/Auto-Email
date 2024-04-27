@@ -45,6 +45,7 @@ def notary_email(user: GoogleServices):
     print("\nEnter your choice (1/2/q): ")
     while True:
         choice = getch()
+        print(choice)
         if choice == "1":
             print("\nLoading...")
             send_notary_emails(user, spreadsheet)
