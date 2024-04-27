@@ -183,8 +183,7 @@ class GoogleServices:
             return folder.get('id')
 
 
-    def upload_folder(self, folder_path, parent_folder_id):
-        folder_name = os.path.basename(folder_path)
+    def upload_folder(self, folder_name, folder_path, parent_folder_id):
         new_folder_id = self.create_folder(folder_name, parent_folder_id)
         print(f"Folder --- {folder_name}")
         for item in os.listdir(folder_path):

@@ -48,10 +48,12 @@ def upload_case(user : GoogleServices):
         for folder_name in os.listdir(root_folder_path):
             print("------------------------------------------------------------")
             print(f"\n\n ------> {folder_name}")
+            drive_folder_name = folder_name
             case_name = folder_name.split("(")[0].strip()
             collab = get_collab(folder_name)
             if not collab:
                 collab = default_collab
+                drive_folder_name = folder_name + f" ({collab})"
             
             if any(word.isupper() for word in case_name.split()):
                 folder_path = os.path.join(root_folder_path,folder_name)
@@ -59,7 +61,7 @@ def upload_case(user : GoogleServices):
                 date_dict = process_folder(folder_path)
                 if date_dict:
                     print("Uploading...\n")
-                    user.upload_folder(folder_path, notary_folder_id)
+                    user.upload_folder(drive_folder_name, folder_path, notary_folder_id)
                     update_invoice_sheet(invoice_worksheet, case_name,date_dict, collab, notary_name)
                     shutil.rmtree(folder_path)
             else:
