@@ -151,13 +151,13 @@ def update_invoice_sheet(worksheet : gspread.Worksheet, name,date_dict, collab, 
 
 def save_dob_dod(folder_path,death_proof_file):
     death_proof_path = os.path.join(folder_path,death_proof_file)
-    img = get_death_proof_img(death_proof_path)
-    result = get_dob_dod(img)
     date_path = os.path.join(folder_path,"dob_dod.json")
     try:
         with open(date_path,"r") as file:
             result = json.load(file)
     except:
+        img = get_death_proof_img(death_proof_path)
+        result = get_dob_dod(img)
         with open(date_path,"w") as file:
             json.dump(result, file, indent=4)
     
