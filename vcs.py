@@ -13,7 +13,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # Constants
-GITHUB_EXE_URL = 'https://raw.githubusercontent.com/ChandanHans/Auto-email/main/output/AutoEmail.exe'
+GITHUB_EXE_URL = 'https://github.com/ChandanHans/Auto-email/raw/main/output/AutoEmail.exe'
 REPO_API_URL = f"https://api.github.com/repos/ChandanHans/Auto-email/git/trees/main?recursive=1"
 REPO_EXE_API_URL = 'https://api.github.com/repos/ChandanHans/Auto-email/commits?path=output/AutoEmail.exe'
 LOCAL_DATE_PATH = resource_path("date.txt")
