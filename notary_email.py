@@ -294,7 +294,7 @@ def create_notary_message(user: GoogleServices , to: str, person_full_name: str,
     message['To'] = to
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
     
-    with open(resource_path('static/notary_email.html'), 'r', encoding="utf-8") as file:
+    with open(NOTARY_EMAIL_TEMPLATE_PATH, 'r', encoding="utf-8") as file:
         html_template = file.read()
     message_html = html_template.format(
         notary_last_name = notary_last_name,
