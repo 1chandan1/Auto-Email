@@ -26,7 +26,7 @@ jobs:
         working-directory: ./  # Modify this path
 
       - name: Create .env File
-        run: echo 'CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}' > .env
+        run: echo 'CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}','OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' > .env
 
       - name: Create Date File
         run: python -c "import datetime; print(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'))" > date.txt
