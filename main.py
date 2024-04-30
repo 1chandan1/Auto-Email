@@ -2,7 +2,7 @@ from client_email import client_email
 from facturation import facturation
 from google_services import GoogleServices
 from notary_email import notary_email
-from upload_case import upload_case
+from assign_case import assign_case
 from vcs import check_for_updates
 from utils import *
 
@@ -23,7 +23,7 @@ def start(user : GoogleServices):
             break
         elif choice == "2":
             print("\nLoading...")
-            upload_case(user)
+            assign_case(user)
             break
         elif choice == "3":
             print("\nLoading...")

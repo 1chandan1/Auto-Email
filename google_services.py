@@ -322,7 +322,7 @@ class GoogleServices:
                 fields='id'
             ).execute()
 
-            print(f"File {file_name} created and uploaded successfully")
+            print(f"{file_name} created")
         except Exception as e:
             print(f"An error occurred: {e}")
         fh.close()
