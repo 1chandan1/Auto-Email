@@ -10,7 +10,7 @@ from utils import *
 def start(user : GoogleServices):
     user.print_details()
     print("1. Notary Email")
-    print("2. Upload Files For Notary")
+    print("2. Verify Notary Files")
     print("3. Client Email")
     print("4. Facturation")
     print("\nEnter your choice (1/2/3/4): ")

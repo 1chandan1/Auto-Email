@@ -9,7 +9,7 @@ from utils import *
 openai_client = OpenAI(api_key = get_gpt_key())
 
 
-def get_dob_dod(image):
+def ask_date(image):
     text = pytesseract.image_to_string(image, lang="fra")
     prompt = (
         text
@@ -39,9 +39,11 @@ def get_dob_dod(image):
         response_format={"type": "json_object"},
         max_tokens=300,
     )
-    result = eval(response.choices[0].message.content)
-
-    return result
+    try:
+        result = eval(response.choices[0].message.content)
+        return result
+    except:
+        return {}
 
 def setup_tesseract():
     os_name = platform.system()

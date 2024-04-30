@@ -1,3 +1,4 @@
+import io
 import os
 import pickle
 from time import sleep
@@ -5,7 +6,9 @@ from time import sleep
 import gspread
 from googleapiclient.http import MediaFileUpload
 from email.mime.multipart import MIMEMultipart
+from googleapiclient.http import MediaIoBaseUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
@@ -212,9 +215,9 @@ class GoogleServices:
             # File already exists, skip the upload
             print(f"Skip            |- {file_name}")
             
-    def delete_file_by_name(self, file_name, folder_id):
+    def delete_file_by_name(self, folder_id, file_name):
         """Delete a file by name within the specified folder."""
-        query = f"name='{file_name}' and '{folder_id}' in parents and trashed=false"
+        query = f"name contains '{file_name}' and '{folder_id}' in parents and trashed=false"
         response = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
         files = response.get('files', [])
 
@@ -222,6 +225,137 @@ class GoogleServices:
             for file in files:
                 # Perform the deletion
                 self.drive_service.files().delete(fileId=file['id']).execute()
-                print(f"Deleted         |- {file_name}")
-        else:
-            print(f"File not found  |- {file_name}")
+                print(f"Deleting {file_name}")
+
+
+    def get_file_by_name(self, folder_id, name):
+        query = f"name contains '{name}' and '{folder_id}' in parents and trashed=false"
+        try:
+            # Use the list method from the Drive API to search for the file
+            response = self.drive_service.files().list(
+                q=query,
+                spaces='drive',
+                fields='files(id, name)',
+                pageSize=10
+            ).execute()
+
+            file_list = response.get('files', [])
+            if file_list:
+                return {'id': file_list[0]['id'], 'name': file_list[0]['name']}
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return {}
+        return {}
+    
+    def get_target_folders(self, parent_folder_id):
+        query = f"'{parent_folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        folders = []
+        page_token = None
+        try:
+            while True:
+                # Use the list method from the Drive API to get folders
+                response = self.drive_service.files().list(
+                    q=query,
+                    spaces='drive',
+                    fields='nextPageToken, files(id, name)',
+                    pageToken=page_token,
+                    pageSize=100  # Optional, to control the number of items per page
+                ).execute()
+
+                # Extract folders from response
+                file_list = response.get('files', [])
+                folders.extend([{'id': folder['id'], 'name': folder['name']} for folder in file_list])
+
+                # Update page token
+                page_token = response.get('nextPageToken', None)
+                if page_token is None:
+                    break
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        return folders
+    
+    def get_file_size(self, file_id):
+        """Retrieve the size of a file in Google Drive given its file ID and return the size in megabytes."""
+        try:
+            # Request to get the file's size
+            file = self.drive_service.files().get(fileId=file_id, fields='size').execute()
+            # The size will be in bytes
+            file_size = file.get('size')  # Size in bytes
+
+            if file_size is None:
+                return "File size not available or file has no content."
+            else:
+                # Convert the size from bytes to megabytes and round to three decimal places
+                size_in_mb = round(int(file_size) / (1024 * 1024), 3)
+                return size_in_mb
+        except Exception as e:
+            return -1
+        
+        
+    
+    def upload_json(self, folder_id, data, file_name):
+        """Create a JSON file and upload it directly to a specific folder on Google Drive without creating a temporary file."""
+        self.delete_file_by_name(folder_id, file_name)
+        # Convert the data to JSON format
+        json_data = json.dumps(data, indent=4)  # `indent=4` for pretty-printing
+        json_bytes = json_data.encode('utf-8')  # Convert string to bytes
+
+        # Use BytesIO to simulate a file with the JSON content
+        fh = io.BytesIO(json_bytes)
+
+        # Define the metadata for the Google Drive file
+        file_metadata = {
+            'name': file_name,
+            'parents': [folder_id],
+            'mimeType': 'application/json'
+        }
+
+        # Create a MediaIoBaseUpload object using the BytesIO "file"
+        media = MediaIoBaseUpload(fh, mimetype='application/json', resumable=True)
+
+        # Upload the file to Google Drive
+        try:
+            file = self.drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
+
+            print(f"File {file_name} created and uploaded successfully")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        fh.close()
+
+    def download_file(self, file: dict[str, str]) -> str:
+        file_id = file['id']
+        file_name = file['name']
+        try:
+            request = self.drive_service.files().get_media(fileId=file_id)
+            fh = io.BytesIO()  # Using a file-like object for streaming download
+            downloader = MediaIoBaseDownload(fh, request)
+
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+
+            # Once the download is complete, write the file to disk
+            path = os.path.join(os.getcwd(), file_name)
+            with open(path, 'wb') as f:
+                fh.seek(0)  # Move to the beginning of the file-like buffer
+                f.write(fh.read())
+            return path
+        except:
+            return None
+        
+    def move_folder(self,folder_id, from_id , to_id):
+        try:
+            # Use the update method of the Drive service to move the folder
+            self.drive_service.files().update(
+                fileId=folder_id,
+                addParents = to_id,
+                removeParents=from_id,
+                fields='id, parents'
+            ).execute()
+        except Exception as e:
+            print(f"Failed to move folder: {e}")

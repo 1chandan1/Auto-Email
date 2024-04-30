@@ -1,16 +1,14 @@
+from datetime import datetime
 import re
 import fitz  # PyMuPDF
 from PIL import Image
 import gspread
 import io
-import tkinter as tk
 from time import sleep
-from tkinter import filedialog
 
-import pandas as pd
 from google_services import GoogleServices
 from constants import *
-from image_processing import get_dob_dod
+from image_processing import ask_date
 from utils import *
 
 def upload_case(user : GoogleServices):
@@ -34,36 +32,30 @@ def upload_case(user : GoogleServices):
     
     notary_index = int(choice) - 1
     notary_name = all_notary_data[notary_index][0]
-    notary_folder_id = all_notary_data[notary_index][2]
-    
-    default_collab = get_default_collab()
+    verify_folder_id = all_notary_data[notary_index][5]
+    submit_folder_id = all_notary_data[notary_index][2]
     
     user.print_details()
     print()
     print_center(notary_name)
     print("\n")
-    input("Press Enter to select the root folder : ")
-    root_folder_path = get_root_folder_path()
+    
+    folders_to_verify = user.get_target_folders(verify_folder_id)
     try:
-        for folder_name in os.listdir(root_folder_path):
+        for folder in folders_to_verify:
+            folder_name = str(folder["name"])
+            folder_id = str(folder["id"])
             print("------------------------------------------------------------")
             print(f"\n\n ------> {folder_name}")
-            drive_folder_name = folder_name
             case_name = folder_name.split("(")[0].strip()
             collab = get_collab(folder_name)
-            if not collab:
-                collab = default_collab
-                drive_folder_name = folder_name + f" ({collab})"
-            
             if any(word.isupper() for word in case_name.split()):
-                folder_path = os.path.join(root_folder_path,folder_name)
-                
-                date_dict = process_folder(folder_path)
-                if date_dict:
-                    print("Uploading...\n")
-                    user.upload_folder(drive_folder_name, folder_path, notary_folder_id)
-                    update_invoice_sheet(invoice_worksheet, case_name,date_dict, collab, notary_name)
-                    shutil.rmtree(folder_path)
+                all_good = verify_folder(user, folder_id)
+                if all_good:
+                    print("Moving...\n")
+                    user.move_folder(folder_id,verify_folder_id, submit_folder_id)
+                    update_invoice_sheet(invoice_worksheet, case_name, collab, notary_name)
+                    
             else:
                 print("Problem in Folder name")
             print("------------------------------------------------------------")
@@ -71,24 +63,6 @@ def upload_case(user : GoogleServices):
         print(e)
     input("\n\nPress Enter to Exit :")
     
-    
-def get_root_folder_path():
-    while True:
-        root = tk.Tk()
-        root.withdraw()  # Hide the Tkinter root window
-        root.attributes('-topmost', True)
-        path = filedialog.askdirectory()
-        root.destroy()
-        print(f"\nPath: {path}")
-        print("\nPlease Confirm (y/n)")
-        while True:
-            choice = getch()
-            print(choice)
-            if choice == "y":
-                return path
-            elif choice == "n":
-                break
-            sleep(0.1)
 
 def get_default_collab():
     print("\nCollab :")
@@ -107,33 +81,32 @@ def get_default_collab():
         sleep(0.1)
 
 
-def process_folder(folder_path):
-    all_file_name = [str(file_name) for file_name in os.listdir(folder_path)]
-    death_proof_file = next((element for element in all_file_name if "acte de décè" in element.lower()), None)
-    mandat_file = next((element for element in all_file_name if "mandat" in element.lower()), None)
+def verify_folder(user : GoogleServices, folder_id):
+    death_proof_file = user.get_file_by_name(folder_id, "acte de décè")
+    mandat_file = user.get_file_by_name(folder_id, "mandat")
     
     if not death_proof_file:
         print("No  ---  Acte de décès")
-        return None
+        return False
     if not mandat_file:
         print("No  ---  MANDAT")
-        return None
-    death_proof_path = os.path.join(folder_path,death_proof_file)
-    mandat_path = os.path.join(folder_path,mandat_file)
+        return False
     
-    if not is_goog_size(death_proof_path):
+    if user.get_file_size(death_proof_file["id"]) > 4:
         print("Acte de décès > 4mb")
-        return None
+        return False
     
-    if not is_goog_size(mandat_path):
+    if user.get_file_size(mandat_file["id"]) > 4:
         print("MANDAT > 4mb")
-        return None
+        return False
     
-    date_dict  = save_dob_dod(folder_path,death_proof_file)
+    date_dict  = get_dob_dod(user, death_proof_file)
     if not date_dict:
         print("problem in  ---  dob_dod.json")
-        return None
-    return date_dict
+        return False
+
+    user.upload_json(folder_id,date_dict,"dob_dod.json")
+    return True
     
 def get_collab(folder_path):
     match = re.search(r'\((.*?)\)', folder_path)
@@ -143,29 +116,44 @@ def get_collab(folder_path):
         return value
     return None
     
-def update_invoice_sheet(worksheet : gspread.Worksheet, name,date_dict, collab, notary_name):
+def update_invoice_sheet(worksheet : gspread.Worksheet, name, collab, notary_name):
     existing_case_name = [str(value).strip() for value in worksheet.col_values(2)]
     next_row = len(existing_case_name) + 1
     if not name in existing_case_name:
         worksheet.insert_row([None,name,None,None,collab, notary_name],next_row)
-        worksheet.update_acell(f"C{next_row}", date_dict["DOB"])
-        worksheet.update_acell(f"D{next_row}", date_dict["DOD"])
 
-def save_dob_dod(folder_path,death_proof_file):
-    death_proof_path = os.path.join(folder_path,death_proof_file)
-    date_path = os.path.join(folder_path,"dob_dod.json")
-    try:
-        with open(date_path,"r") as file:
-            result = json.load(file)
-    except:
+def get_dob_dod(user : GoogleServices, death_proof_file):
+    date_dict = {}
+    death_proof_path = user.download_file(death_proof_file)
+    if death_proof_path:
         img = get_death_proof_img(death_proof_path)
-        result = get_dob_dod(img)
-        with open(date_path,"w") as file:
-            json.dump(result, file, indent=4)
+        result = ask_date(img)
+        if result:
+            date_dict = fix_dob_dod(result, death_proof_path)
+        os.remove(death_proof_path)
+    return date_dict
     
-    if result["DOB"] and result["DOD"]:
-        return result
-    return None
+    
+def fix_dob_dod(date_dict, file_path):
+    if not ("DOB" in date_dict and "DOD" in date_dict):
+        date_dict = {}
+        print("There is a problem")
+        print(f"Please open DeathCertificate and Enter the DOB and DOD manualy : {file_path}")
+        print(f"Date should be like : DD/MM/YYYY")
+        date_dict = {"DOB":input("DOB : "), "DOD": input("DOD : ")}
+    if is_valid_date(date_dict["DOB"]) and is_valid_date(date_dict["DOD"]):
+        return date_dict
+    else:
+        return fix_dob_dod(date_dict,file_path)
+
+def is_valid_date(date_text):
+    try:
+        if datetime.strptime(date_text, "%d/%m/%Y") and re.match(r'^\d{2}/\d{2}/\d{4}$', date_text):
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
     
 def get_death_proof_img(pdf_path, resolution=300):
     doc = fitz.open(pdf_path)
@@ -173,9 +161,3 @@ def get_death_proof_img(pdf_path, resolution=300):
     pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
     img = Image.open(io.BytesIO(pix.tobytes("png")))
     return img
-    
-
-def is_goog_size(file_path):
-    size = os.path.getsize(file_path)
-    return size < 4 * 1024 * 1024
-    
