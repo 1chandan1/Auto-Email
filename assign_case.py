@@ -167,5 +167,3 @@ def get_death_proof_img(pdf_path, resolution=300):
     pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
     img = Image.open(io.BytesIO(pix.tobytes("png")))
     return img
-
-print(fix_dob_dod({}, "file_path"))
