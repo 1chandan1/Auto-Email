@@ -100,6 +100,7 @@ def verify_folder(user : GoogleServices, folder_id):
         print("MANDAT > 4mb")
         return False
     
+    print(f"This is the death certificate : https://drive.google.com/file/d/{death_proof_file['id']}")
     date_dict  = get_dob_dod(user, death_proof_file["id"])
     if not date_dict:
         print("problem in  ---  dob_dod.json")
@@ -136,8 +137,7 @@ def get_dob_dod(user : GoogleServices, death_proof_id):
 def fix_dob_dod(date_dict, file_id):
     if 'DOB' not in date_dict or 'DOD' not in date_dict:
         print("\nThere is a problem.")
-        print(f"This is the death certificate : https://drive.google.com/file/d/{file_id}.")
-        print("Manually Enter the DOB and DOD")
+        print("Please Enter the DOB and DOD Manually.")
         # Prompt user to input DOB and DOD
         date_dict = {
             "DOB": input("Enter DOB (DD/MM/YYYY): "),
