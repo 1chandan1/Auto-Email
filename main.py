@@ -5,17 +5,15 @@ from client_email import client_email
 from facturation import facturation
 from google_services import GoogleServices
 from notary_email import notary_email
-from assign_case import assign_case
 from utils import *
 
 
 def start(user : GoogleServices):
     user.print_details()
     print("1. Notary Email")
-    print("2. Verify Notary Files")
-    print("3. Client Email")
-    print("4. Facturation")
-    print("\nEnter your choice (1/2/3/4): ")
+    print("2. Client Email")
+    print("3. Facturation")
+    print("\nEnter your choice (1/2/3): ")
     while True:
         choice = getch()
         print(choice)
@@ -25,13 +23,9 @@ def start(user : GoogleServices):
             break
         elif choice == "2":
             print("\nLoading...")
-            assign_case(user)
-            break
-        elif choice == "3":
-            print("\nLoading...")
             client_email(user)
             break
-        elif choice == "4":
+        elif choice == "3":
             print("\nLoading...")
             facturation(user)
             break
