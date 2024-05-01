@@ -327,9 +327,7 @@ class GoogleServices:
             print(f"An error occurred: {e}")
         fh.close()
 
-    def download_file(self, file: dict[str, str]) -> str:
-        file_id = file['id']
-        file_name = file['name']
+    def download_file(self, file_id : str)-> (io.BytesIO | None):
         try:
             request = self.drive_service.files().get_media(fileId=file_id)
             fh = io.BytesIO()  # Using a file-like object for streaming download
@@ -338,13 +336,8 @@ class GoogleServices:
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-
-            # Once the download is complete, write the file to disk
-            path = os.path.join(os.getcwd(), file_name)
-            with open(path, 'wb') as f:
-                fh.seek(0)  # Move to the beginning of the file-like buffer
-                f.write(fh.read())
-            return path
+            fh.seek(0)
+            return fh
         except:
             return None
         

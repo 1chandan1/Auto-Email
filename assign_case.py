@@ -100,11 +100,11 @@ def verify_folder(user : GoogleServices, folder_id):
         print("MANDAT > 4mb")
         return False
     
-    date_dict  = get_dob_dod(user, death_proof_file)
+    date_dict  = get_dob_dod(user, death_proof_file["id"])
     if not date_dict:
         print("problem in  ---  dob_dod.json")
         return False
-
+    print(date_dict)
     user.upload_json(folder_id,date_dict,"dob_dod.json")
     return True
     
@@ -122,23 +122,22 @@ def update_invoice_sheet(worksheet : gspread.Worksheet, name, collab, notary_nam
     if not name in existing_case_name:
         worksheet.insert_row([None,name,None,None,collab, notary_name],next_row)
 
-def get_dob_dod(user : GoogleServices, death_proof_file):
+def get_dob_dod(user : GoogleServices, death_proof_id):
     date_dict = {}
-    death_proof_path = user.download_file(death_proof_file)
-    if death_proof_path:
-        img = get_death_proof_img(death_proof_path)
+    death_proof_pdf = user.download_file(death_proof_id)
+    if death_proof_pdf:
+        img = get_death_proof_img(death_proof_pdf)
         result = ask_date(img)
         if result:
-            date_dict = fix_dob_dod(result, death_proof_path)
-        os.remove(death_proof_path)
+            date_dict = fix_dob_dod(result, death_proof_id)
     return date_dict
     
     
-def fix_dob_dod(date_dict, file_path):
+def fix_dob_dod(date_dict, file_id):
     if 'DOB' not in date_dict or 'DOD' not in date_dict:
-        print("\nThere is a problem with the dates.")
-        print(f"Please refer to the death certificate and manually enter the DOB and DOD from {file_path}.")
-        print("Dates should be in the format: DD/MM/YYYY")
+        print("\nThere is a problem.")
+        print(f"This is the death certificate : https://drive.google.com/file/d/{file_id}.")
+        print("Manually Enter the DOB and DOD")
         # Prompt user to input DOB and DOD
         date_dict = {
             "DOB": input("Enter DOB (DD/MM/YYYY): "),
@@ -150,7 +149,7 @@ def fix_dob_dod(date_dict, file_path):
         return date_dict
     else:
         # If dates are invalid, reset the dictionary and reattempt the process
-        return fix_dob_dod({}, file_path)
+        return fix_dob_dod({}, file_id)
 
 def is_valid_date(date_text):
     try:
@@ -161,8 +160,8 @@ def is_valid_date(date_text):
     except ValueError:
         return False
     
-def get_death_proof_img(pdf_path, resolution=300):
-    doc = fitz.open(pdf_path)
+def get_death_proof_img(pdf_file : io.BytesIO, resolution=150):
+    doc = fitz.open("pdf", pdf_file.read())
     page = doc.load_page(0)
     pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
     img = Image.open(io.BytesIO(pix.tobytes("png")))
