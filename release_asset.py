@@ -9,9 +9,9 @@ def main():
         "Authorization": f"token {token}",
         "Content-Type": "application/octet-stream",
     }
-    repo = "ChandanHans/NotaireCiclade"
+    repo = "ChandanHans/AutoEmail"
     tag = os.getenv("RELEASE_TAG")
-    file_path = "output/NotaireCiclade.exe"  # Adjust based on your output directory and file naming
+    file_path = "output/AutoEmail.exe"  # Adjust based on your output directory and file naming
 
     # Fetch the release by tag
     response = requests.get(
