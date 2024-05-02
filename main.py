@@ -1,5 +1,8 @@
 from vcs import check_for_updates
+
 check_for_updates()
+
+import locale
 
 from client_email import client_email
 from facturation import facturation
@@ -8,7 +11,7 @@ from notary_email import notary_email
 from utils import *
 
 
-def start(user : GoogleServices):
+def start(user: GoogleServices):
     user.print_details()
     print("1. Notary Email")
     print("2. Client Email")
@@ -32,7 +35,9 @@ def start(user : GoogleServices):
     sleep(0.1)
     start(user)
 
+
 def main():
+    locale.setlocale(locale.LC_TIME, "fr_FR")
     user = GoogleServices()
     start(user)
 
