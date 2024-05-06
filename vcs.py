@@ -10,11 +10,11 @@ from utils import resource_path
 
 
 OWNER = "ChandanHans"
-REPO = "AutoEmail"
+REPO_NAME = "AutoEmail"
 EXE_NAME = "AutoEmail.exe"
 RELEASE_TAG = "v1.0.0"
-EXE_URL = f"https://github.com/{OWNER}/{REPO}/releases/download/{RELEASE_TAG}/AutoEmail.exe"
-REPO_API_URL = f"https://api.github.com/repos/{OWNER}/{REPO}/git/trees/main?recursive=1"
+EXE_URL = f"https://github.com/{OWNER}/{REPO_NAME}/releases/download/{RELEASE_TAG}/AutoEmail.exe"
+REPO_API_URL = f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/git/trees/main?recursive=1"
 LOCAL_TIME_PATH = resource_path("time.txt")
 UPDATER_EXE_PATH = resource_path("updater.exe")
 EXE_PATH = sys.executable
@@ -30,7 +30,7 @@ def get_latest_release_time():
     """Fetch the latest release time from the GitHub repository."""
     # Fetch the release by tag
     response = requests.get(
-        f"https://api.github.com/repos/{OWNER}/{REPO}/releases/tags/{RELEASE_TAG}"
+        f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/releases/tags/{RELEASE_TAG}"
     )
     release_info = response.json()
 

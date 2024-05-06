@@ -8,6 +8,11 @@ on:
 jobs:
   build:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TAG: 'v1.0.0'
+      COMMIT_SHA: ${{ github.sha }}
+      REPO: ${{ github.repository }}
 
     steps:
       - name: Checkout Code
@@ -37,7 +42,4 @@ jobs:
         working-directory: ./  # Modify this path
 
       - name: Upload and Replace EXE in Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: 'v1.0.0'
-        run: python release_asset.py
+        run: python release.py
