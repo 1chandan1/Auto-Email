@@ -6,7 +6,7 @@ on:
       - main  # Adjust to your branch name
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
