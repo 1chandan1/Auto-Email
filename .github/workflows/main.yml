@@ -1,4 +1,4 @@
-name: Create EXE
+name: Create EXE and Release
 
 on:
   push:
