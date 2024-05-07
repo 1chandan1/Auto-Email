@@ -260,7 +260,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
 
 def get_fname_lname(full_name : str):
     words = str(full_name.strip()).split()
-    lname = " ".join([word for word in words if word.isupper()])
+    lname = " ".join([word for word in words if word.isupper() or word.lower() == "de"])
     fname = full_name.replace(lname, "").strip()
     return fname, lname
 

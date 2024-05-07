@@ -1,12 +1,12 @@
-# Auto-email for Klero
+# AutoEmail for Klero
 
 ## Introduction
-'Auto-email' is a custom-developed tool for Klero, aimed at enhancing efficiency in communication and billing. This application automates sending emails to notaries and clients, and assists in the creation of invoices, streamlining these essential operations.
+'AutoEmail' is a custom-developed tool for Klero, aimed at enhancing efficiency in communication and billing. This application automates sending emails to notaries and clients, and assists in the creation of invoices, streamlining these essential operations.
 
 ## Compiled Script
-The `Auto-email` application is available as an EXE file for Klero team members. Simply download and run the executable to start using the application.
+The `AutoEmail` application is available as an EXE file for Klero team members. Simply download and run the executable to start using the application.
 
-Download : [AutoEmail.exe](https://github.com/ChandanHans/Auto-Email/raw/main/output/AutoEmail.exe)
+Download : [AutoEmail.exe](https://github.com/ChandanHans/AutoEmail/releases/download/v1.0.0/AutoEmail.exe)
 
 ## Features
 - **Email to Notary** : Facilitates automatic email dispatch to notaries with pre-defined templates.
