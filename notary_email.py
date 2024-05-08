@@ -192,7 +192,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                                 f"N{row_index}", person_full_name
                             )
                             annuraie_worksheet.update_acell(
-                                f"P{row_index}", user.email
+                                f"Q{row_index}", user.email
                             )
                         print("\nSuccess")
                 elif notary_sheet_row[10] in (
