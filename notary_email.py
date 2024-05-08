@@ -65,7 +65,8 @@ def notary_email(user: GoogleServices):
 def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     annuraie_sheet = user.gc.open_by_key(ANNUAIRE_SHEET_KEY)
     annuraie_worksheet = annuraie_sheet.get_worksheet(0)
-    scheduling_worksheet = annuraie_sheet.get_worksheet_by_id(SCHEDULED_SHEET_ID)
+    scheduling_worksheet = annuraie_sheet.get_worksheet_by_id(
+        SCHEDULED_SHEET_ID)
     worksheet = spreadsheet.get_worksheet(0)
     all_values = worksheet.get_all_values()
     for index, row in enumerate(all_values, start=1):
@@ -75,9 +76,10 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 person_full_name = row[0]
                 _, person_last_name = get_fname_lname(person_full_name)
                 notary_full_name = row[5]
-                notary_first_name, notary_last_name = get_fname_lname(notary_full_name)
+                notary_first_name, notary_last_name = get_fname_lname(
+                    notary_full_name)
                 person_don = row[4]
-                
+
                 if not all([
                     person_last_name.strip(),
                     notary_last_name.strip(),
@@ -86,7 +88,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     is_valid_email(notary_email)
                 ]):
                     continue
-                
+
                 all_row_with_same_email = [
                     index
                     for index, sublist in enumerate(
@@ -158,7 +160,8 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 print(f"Notary Last Name  :    {notary_last_name}\n")
                 print(f"DON               :    {person_don}")
                 print(f"To                :    {notary_email}\n")
-                annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
+                annuraie_worksheet.update_acell(
+                    f"J{notary_sheet_index}", notary_email)
 
                 if notary_sheet_row[10] == "Not contacted":
                     countdown("Sending Email in", random.randint(120, 180))
@@ -189,10 +192,10 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                                 f"K{row_index}", "Contacted / pending answer"
                             )
                             annuraie_worksheet.update_acell(
-                                f"N{row_index}", person_full_name
+                                f"O{row_index}", person_full_name
                             )
                             annuraie_worksheet.update_acell(
-                                f"Q{row_index}", user.email
+                                f"R{row_index}", user.email
                             )
                         print("\nSuccess")
                 elif notary_sheet_row[10] in (
@@ -230,8 +233,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         previous_sender = user.email
                     new_date_text = new_date.strftime("%d/%m/%Y")
                     next_row = len(all_scheduled_data) + 1
-                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(1; ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}); 0)); "")"
-                    last_case_formula = f"""=IFERROR(INDIRECT("E" & MAX(FILTER(ROW(I1:I{next_row-1}); I1:I{next_row-1}=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!N:N; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))"""
                     new_schedule_row = [
                         notary_first_name,
                         notary_last_name,
@@ -244,25 +245,30 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         notary_email,
                         None,
                     ]
-                    scheduling_worksheet.append_row(new_schedule_row)
+                    scheduling_worksheet.insert_row(
+                        new_schedule_row,
+                        index = next_row,
+                        inherit_from_before = True,
+                    )
                     sleep(1)
                     scheduling_worksheet.update_acell(
-                        f"C{next_row}", notary_status_formula
-                    )
-                    scheduling_worksheet.update_acell(f"G{next_row}", last_case_formula)
-                    scheduling_worksheet.update_acell(f"J{next_row}", new_date_text)
-                    worksheet.update_acell(f"L{index}", f"Scheduled on {new_date_text}")
+                        f"J{next_row}", new_date_text)
+                    worksheet.update_acell(
+                        f"L{index}", f"Scheduled on {new_date_text}")
                     worksheet.update_acell(f"K{index}", "draft")
                     print(f"Scheduled on {new_date_text}")
         except Exception as e:
             print(e)
             countdown("Next", 5)
 
-def get_fname_lname(full_name : str):
+
+def get_fname_lname(full_name: str):
     words = str(full_name.strip()).split()
-    lname = " ".join([word for word in words if word.isupper() or word.lower() == "de"])
+    lname = " ".join(
+        [word for word in words if word.isupper() or word.lower() == "de"])
     fname = full_name.replace(lname, "").strip()
     return fname, lname
+
 
 def is_valid_email(email):
     # Regular expression pattern for validating an email
@@ -272,7 +278,8 @@ def is_valid_email(email):
         return True
     else:
         return False
-    
+
+
 def get_row_by_name(
     annuraie_worksheet: gspread.Worksheet, first_name: str, last_name: str
 ):
@@ -288,18 +295,19 @@ def get_row_by_name(
             return index, row
     return None, None
 
-def create_notary_message(user: GoogleServices , to: str, person_full_name: str, person_last_name: str, notary_last_name: str, person_don: str):
+
+def create_notary_message(user: GoogleServices, to: str, person_full_name: str, person_last_name: str, notary_last_name: str, person_don: str):
     message = MIMEMultipart()
     message['From'] = f"Klero Genealogie <{user.email}>"
     message['To'] = to
     message['Subject'] = f'Succession {person_last_name} - Demande de mise en relation'
-    
+
     with open(NOTARY_EMAIL_TEMPLATE_PATH, 'r', encoding="utf-8") as file:
         html_template = file.read()
     message_html = html_template.format(
-        notary_last_name = notary_last_name,
-        person_full_name = person_full_name,
-        person_don = person_don,
+        notary_last_name=notary_last_name,
+        person_full_name=person_full_name,
+        person_don=person_don,
     )
     message.attach(MIMEText(message_html + user.signature, 'html'))
 
