@@ -6,6 +6,7 @@ import requests
 import datetime
 import subprocess
 
+
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +18,9 @@ REPO_NAME = "AutoEmail"
 EXE_NAME = "AutoEmail.exe"
 RELEASE_TAG = "v1.0.0"
 EXE_URL = f"https://github.com/{OWNER}/{REPO_NAME}/releases/download/{RELEASE_TAG}/AutoEmail.exe"
-REPO_API_URL = f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/git/trees/main?recursive=1"
+REPO_API_URL = (
+    f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/git/trees/main?recursive=1"
+)
 LOCAL_TIME_PATH = resource_path("time.txt")
 UPDATER_EXE_PATH = resource_path("updater.exe")
 EXE_PATH = sys.executable
@@ -54,7 +57,7 @@ def get_latest_release_time():
 
 
 def is_my_machine():
-    my_machine_list = ["ASUS-CHANDAN"]
+    my_machine_list = ["CHANDAN-ASUS"]
     return socket.gethostname() in my_machine_list
 
 
