@@ -48,7 +48,7 @@ def create_tag_and_release(headers, repo, tag, commit_sha, release_title, file_p
     release_data = {
         "tag_name": tag,
         "name": release_title,
-        "body": "This release has the latest version of the NotaireCiclade executable.",
+        "body": "This release has the latest version of the AutoEmail executable.",
         "draft": False,
         "prerelease": False,
     }
