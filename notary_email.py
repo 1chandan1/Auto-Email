@@ -161,7 +161,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
 
                 if notary_sheet_row[10] == "Not contacted":
-                    # countdown("Sending Email in", random.randint(120, 180))
+                    countdown("Sending Email in", random.randint(120, 180))
                     print("\nSending Email...")
                     status = None
                     for _ in range(3):
@@ -226,8 +226,8 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         previous_sender = user.email
                     new_date_text = new_date.strftime("%d/%m/%Y")
                     next_row = len(all_scheduled_data) + 1
-                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K, MATCH(1, ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}), 0)), "")"
-                    last_case_formula = f"""=IFNA(INDIRECT("E" & MAX(FILTER(Row(INDIRECT("I1:I" & ROW()-1)), INDIRECT("I1:I" & ROW()-1)=I{next_row}))), IFERROR(INDEX('Notaire annuaire'!O:O, MATCH(I{next_row}, 'Notaire annuaire'!J:J, 0),1)))"""
+                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(1; ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}); 0)); "")"
+                    last_case_formula = f"""=IFNA(INDIRECT("E" & MAX(FILTER(Row(INDIRECT("I1:I" & ROW()-1)); INDIRECT("I1:I" & ROW()-1)=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!O:O; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))"""
                     new_schedule_row = [
                         notary_first_name,
                         notary_last_name,
