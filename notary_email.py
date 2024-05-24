@@ -8,13 +8,14 @@ from googleapiclient.errors import HttpError
 from gspread.exceptions import SpreadsheetNotFound
 from dateutil.relativedelta import relativedelta
 import gspread
+import pandas as pd
 
 from time import sleep
 
 from unidecode import unidecode
 from constants import *
 from google_services import GoogleServices
-from utils import clear_display, countdown, getch, print_center
+from utils import countdown, getch, print_center
 
 
 def notary_email(user: GoogleServices):
@@ -66,18 +67,24 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     annuraie_sheet = user.gc.open_by_key(ANNUAIRE_SHEET_KEY)
     annuraie_worksheet = annuraie_sheet.get_worksheet(0)
     scheduling_worksheet = annuraie_sheet.get_worksheet_by_id(SCHEDULED_SHEET_ID)
-    worksheet = spreadsheet.get_worksheet(0)
-    all_values = worksheet.get_all_values()
-    for index, row in enumerate(all_values, start=1):
+    worksheet = spreadsheet.get_worksheet_by_id(0)
+    sheet_data = worksheet.get_all_values()
+    header = sheet_data[0]
+    rows = sheet_data[1:]
+    df = pd.DataFrame(rows, columns=header)
+    df.index += 2
+    status_col_index = df.columns.get_loc('Status') + 1
+    comment_col_index = status_col_index + 1
+    for index, row in df.iterrows():
         try:
-            if row[10] == "à envoyer":
+            if row["Status"] == "à envoyer":
                 all_annuraie_data = annuraie_worksheet.get_all_values()
-                notary_email = str(row[8]).strip().split("\n")[0].strip()
-                person_full_name = str(row[0]).strip()
+                notary_email = str(row["Email"]).strip().split("\n")[0].strip()
+                person_full_name = str(row["Name"]).strip()
                 _, person_last_name = get_fname_lname(person_full_name)
-                notary_full_name = str(row[5]).strip()
+                notary_full_name = str(row["Notary"]).strip()
                 notary_first_name, notary_last_name = get_fname_lname(notary_full_name)
-                person_don = str(row[4]).strip()
+                person_don = str(row["Data Of Notoriety"]).strip()
 
                 if not all(
                     [
@@ -97,7 +104,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     )
                     if notary_email in sublist
                 ]
-                notary_sheet_index, notary_sheet_row = get_row_by_name(
+                notary_sheet_index, annuraie_sheet_row = get_row_by_name(
                     annuraie_worksheet, notary_first_name, notary_last_name
                 )
                 if not notary_sheet_index:
@@ -112,16 +119,16 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             temp_date = temp_row[11]
                         except:
                             pass
-                    notary_sheet_row = [
+                    annuraie_sheet_row = [
                         "",
                         notary_first_name,
                         notary_last_name,
                         "",
                         "",
                         "",
-                        row[6],
-                        row[7],
-                        row[9],
+                        "",
+                        row["Phone"],
+                        "",
                         notary_email,
                         temp_status,
                         temp_date,
@@ -132,17 +139,17 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     ]
                     notary_sheet_index = len(all_annuraie_data) + 1
                     annuraie_worksheet.insert_row(
-                        notary_sheet_row,
+                        annuraie_sheet_row,
                         index=notary_sheet_index,
                         inherit_from_before=True,
                     )
-                    worksheet.update_acell(f"L{index}", "New Notary added")
+                    worksheet.update_cell(index, comment_col_index, "New Notary added")
                     all_row_with_same_email.append(notary_sheet_index)
 
-                if notary_sheet_row[10] == "Not cooperating":
-                    worksheet.update_acell(f"L{index}", "Not cooperating")
+                if annuraie_sheet_row[10] == "Not cooperating":
+                    worksheet.update_cell(index, comment_col_index, "Not cooperating")
                     continue
-                contact_date = notary_sheet_row[11]
+                contact_date = annuraie_sheet_row[11]
                 user.print_details()
                 print_center("Notary Email")
                 print()
@@ -160,7 +167,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 print(f"To                :    {notary_email}\n")
                 annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
 
-                if notary_sheet_row[10] == "Not contacted":
+                if annuraie_sheet_row[10] == "Not contacted":
                     countdown("Sending Email in", random.randint(120, 180))
                     print("\nSending Email...")
                     status = None
@@ -179,7 +186,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         countdown("Trying to send email again", 5)
 
                     if status:
-                        worksheet.update_acell(f"K{index}", "envoyé")
+                        worksheet.update_cell(index, status_col_index, "envoyé")
                         today_date = datetime.now().date().strftime("%d/%m/%Y")
                         for row_index in all_row_with_same_email:
                             annuraie_worksheet.update_acell(f"L{row_index}", today_date)
@@ -191,13 +198,13 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             )
                             annuraie_worksheet.update_acell(f"R{row_index}", user.email)
                         print("\nSuccess")
-                elif notary_sheet_row[10] in (
+                elif annuraie_sheet_row[10] in (
                     "Contacted / pending answer",
                     "Cooperating",
                 ):
                     print("Scheduling Email")
                     sleep(2)
-                    previous_scheduled_date = notary_sheet_row[11]
+                    previous_scheduled_date = annuraie_sheet_row[11]
                     all_scheduled_data = scheduling_worksheet.get_all_values()
                     for scheduled_data in all_scheduled_data[::-1]:
                         if (
@@ -219,7 +226,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         new_date += relativedelta(days=1)
 
                     try:
-                        previous_sender = notary_sheet_row[15]
+                        previous_sender = annuraie_sheet_row[15]
                         if not previous_sender:
                             previous_sender = user.email
                     except:
@@ -251,8 +258,8 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     )
                     scheduling_worksheet.update_acell(f"G{next_row}", last_case_formula)
                     scheduling_worksheet.update_acell(f"J{next_row}", new_date_text)
-                    worksheet.update_acell(f"L{index}", f"Scheduled on {new_date_text}")
-                    worksheet.update_acell(f"K{index}", "draft")
+                    worksheet.update_cell(index, status_col_index, "draft")
+                    worksheet.update_cell(index, comment_col_index, f"Scheduled on {new_date_text}")
                     print(f"Scheduled on {new_date_text}")
         except Exception as e:
             print(e)
