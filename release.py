@@ -2,7 +2,6 @@ import os
 from time import sleep
 import requests
 
-
 def delete_release_and_tag(headers, repo, release_id, tag):
     """Delete the release and its associated Git tag."""
     # Delete the release
@@ -24,7 +23,6 @@ def delete_release_and_tag(headers, repo, release_id, tag):
         return False
 
     return True
-
 
 def create_tag_and_release(headers, repo, tag, commit_sha, release_title, file_path):
     """Create a new tag and release, then upload the file."""
@@ -67,16 +65,22 @@ def create_tag_and_release(headers, repo, tag, commit_sha, release_title, file_p
 
     # Upload the file to the release
     upload_url = f"https://uploads.github.com/repos/{repo}/releases/{release_id}/assets?name={os.path.basename(file_path)}"
-    with open(file_path, "rb") as file:
-        headers["Content-Type"] = "application/octet-stream"
-        response = requests.post(upload_url, headers=headers, data=file.read())
-        if response.status_code in range(200, 300):
-            print("Asset uploaded successfully")
-            return True
-        else:
-            print(f"Failed to upload asset: {response.json()}")
-            return False
-
+    try:
+        with open(file_path, "rb") as file:
+            headers["Content-Type"] = "application/octet-stream"
+            response = requests.post(upload_url, headers=headers, data=file.read())
+            if response.status_code in range(200, 300):
+                print("Asset uploaded successfully")
+                return True
+            else:
+                print(f"Failed to upload asset: {response.json()}")
+                return False
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+        return False
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
 
 def main():
     token = os.getenv("GITHUB_TOKEN")
@@ -103,7 +107,6 @@ def main():
     else:
         print(f"Failed to fetch release or release does not exist: {response.json()}")
     create_tag_and_release(headers, repo, tag, commit_sha, repo_name, file_path)
-    sleep(10)
 
 if __name__ == "__main__":
     main()
