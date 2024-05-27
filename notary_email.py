@@ -65,9 +65,9 @@ def notary_email(user: GoogleServices):
 
 def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     annuraie_sheet = user.gc.open_by_key(ANNUAIRE_SHEET_KEY)
-    annuraie_worksheet = annuraie_sheet.get_worksheet(0)
-    scheduling_worksheet = annuraie_sheet.get_worksheet_by_id(SCHEDULED_SHEET_ID)
-    worksheet = spreadsheet.get_worksheet_by_id(0)
+    annuraie_worksheet = annuraie_sheet.worksheet(ANNUAIRE_WORKSHEET_NAME)
+    scheduling_worksheet = annuraie_sheet.worksheet(SCHEDULED_WORKSHEET_NAME)
+    worksheet = spreadsheet.get_worksheet(0)
     sheet_data = worksheet.get_all_values()
     header = sheet_data[0]
     rows = sheet_data[1:]
