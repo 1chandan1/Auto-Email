@@ -187,7 +187,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
 
                     if status:
                         worksheet.update_cell(index, status_col_index, "envoyé")
-                        today_date = datetime.now().date().strftime("%d/%m/%Y")
+                        today_date = datetime.now().date().strftime("%d-%b-%Y")
                         for row_index in all_row_with_same_email:
                             annuraie_worksheet.update_acell(f"L{row_index}", today_date)
                             annuraie_worksheet.update_acell(
@@ -215,7 +215,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             break
                     try:
                         new_date = datetime.strptime(
-                            previous_scheduled_date, "%d/%m/%Y"
+                            previous_scheduled_date, "%d-%b-%Y"
                         ) + relativedelta(months=+2)
                     except:
                         new_date = datetime.now().date() + relativedelta(months=+2)
@@ -231,7 +231,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             previous_sender = user.email
                     except:
                         previous_sender = user.email
-                    new_date_text = new_date.strftime("%d/%m/%Y")
+                    new_date_text = new_date.strftime("%d-%b-%Y")
                     next_row = len(all_scheduled_data) + 1
                     notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(1; ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}); 0)); "")"
                     last_case_formula = f"""=IFNA(INDIRECT("E" & MAX(FILTER(Row(INDIRECT("I1:I" & ROW()-1)); INDIRECT("I1:I" & ROW()-1)=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!O:O; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))"""
@@ -261,6 +261,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     worksheet.update_cell(index, status_col_index, "draft")
                     worksheet.update_cell(index, comment_col_index, f"Scheduled on {new_date_text}")
                     print(f"Scheduled on {new_date_text}")
+                    countdown("Next",5)
         except Exception as e:
             print(e)
             countdown("Next", 5)
