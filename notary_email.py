@@ -261,7 +261,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     worksheet.update_cell(index, status_col_index, "draft")
                     worksheet.update_cell(index, comment_col_index, f"Scheduled on {new_date_text}")
                     print(f"Scheduled on {new_date_text}")
-                    countdown("Next",5)
+                countdown("Next",5)
         except Exception as e:
             print(e)
             countdown("Next", 5)

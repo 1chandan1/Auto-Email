@@ -1,4 +1,5 @@
 import os
+from time import sleep
 import requests
 
 
@@ -102,7 +103,7 @@ def main():
     else:
         print(f"Failed to fetch release or release does not exist: {response.json()}")
     create_tag_and_release(headers, repo, tag, commit_sha, repo_name, file_path)
-
+    sleep(10)
 
 if __name__ == "__main__":
     main()
