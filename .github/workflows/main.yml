@@ -1,16 +1,14 @@
 name: Create EXE and Release
 
 on:
-  push:
-    branches:
-      - '*' 
+  workflow_dispatch:
 
 jobs:
   build-and-release:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_TAG: 'v2.0.0'
+      RELEASE_TAG: 'v1.0.0'
       COMMIT_SHA: ${{ github.sha }}
       REPO: ${{ github.repository }}
 

@@ -16,7 +16,7 @@ def resource_path(relative_path):
 OWNER = "ChandanHans"
 REPO_NAME = "AutoEmail"
 EXE_NAME = "AutoEmail.exe"
-RELEASE_TAG = "v2.0.0"
+RELEASE_TAG = "v1.0.0"
 EXE_URL = f"https://github.com/{OWNER}/{REPO_NAME}/releases/download/{RELEASE_TAG}/AutoEmail.exe"
 REPO_API_URL = (
     f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/git/trees/main?recursive=1"
