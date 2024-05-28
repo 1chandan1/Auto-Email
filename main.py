@@ -1,14 +1,14 @@
-from vcs import check_for_updates
+from src.vcs import check_for_updates
 
 check_for_updates()
 
 import locale
 
-from client_email import client_email
-from facturation import facturation
-from google_services import GoogleServices
-from notary_email import notary_email
-from utils import *
+from src.client_email import client_email
+from src.facturation import facturation
+from src.google_services import GoogleServices
+from src.notary_email import notary_email
+from src.utils import *
 
 
 def start(user: GoogleServices):

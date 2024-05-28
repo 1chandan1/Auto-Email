@@ -1,4 +1,4 @@
-from utils import resource_path
+from src.utils import resource_path
 
 
 SIGNATURE_TEMPLATE_PATH = resource_path("templates/signature.html")

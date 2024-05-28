@@ -13,9 +13,9 @@ import pandas as pd
 from time import sleep
 
 from unidecode import unidecode
-from constants import *
-from google_services import GoogleServices
-from utils import countdown, getch, print_center
+from src.constants import *
+from src.google_services import GoogleServices
+from src.utils import countdown, getch, print_center
 
 
 def notary_email(user: GoogleServices):

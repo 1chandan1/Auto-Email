@@ -12,8 +12,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
-from constants import INTERN_SHEET_KEY, SIGNATURE_TEMPLATE_PATH
-from utils import *
+from src.constants import INTERN_SHEET_KEY, SIGNATURE_TEMPLATE_PATH
+from src.utils import *
 
 
 class GoogleServices:
