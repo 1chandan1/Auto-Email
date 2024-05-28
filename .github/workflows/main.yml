@@ -1,16 +1,14 @@
 name: Create EXE and Release
 
 on:
-  push:
-    branches:
-      - main  # Adjust to your branch name
+  workflow_dispatch:
 
 jobs:
   build-and-release:
     runs-on: windows-latest  # Use a Windows runner with Node.js 16
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_TAG: 'v1.0.0'
+      RELEASE_TAG: 'v2.0.0'
       COMMIT_SHA: ${{ github.sha }}
       REPO: ${{ github.repository }}
 
@@ -39,7 +37,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --noconfirm --onefile --console --icon "templates/bot.ico" --name "AutoEmail" --clean --add-data "templates/:templates/" --add-data "time.txt:." --add-data ".env:."  --add-data "updater.exe:." --distpath ./output "main.py"
+          pyinstaller --noconfirm --onefile --console --icon "images/bot.ico" --name "AutoEmail" --clean --add-data "templates/:templates/" --add-data "time.txt:." --add-data ".env:."  --add-data "updater.exe:." --distpath ./output "main.py"
 
       - name: Upload and Replace EXE in Release
         run: python release.py

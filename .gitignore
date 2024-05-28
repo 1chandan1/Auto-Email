@@ -1,7 +1,7 @@
-/output
-/secret_token.pickle
-/.env
-/.venv
-/invoice
-/__pycache__
-/k.py
+output
+secret_token.pickle
+.env
+.venv
+invoice
+__pycache__
+k.py
