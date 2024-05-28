@@ -1,7 +1,9 @@
 name: Create EXE and Release
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - '*'
 
 jobs:
   build-and-release:
