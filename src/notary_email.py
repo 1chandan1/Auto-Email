@@ -74,7 +74,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     df = pd.DataFrame(rows, columns=header)
     df.index += 2
     status_col_index = df.columns.get_loc('Status') + 1
-    comment_col_index = status_col_index + 1
+    comment_column_index = status_col_index + 1
     for index, row in df.iterrows():
         try:
             if row["Status"] == "à envoyer":
@@ -143,11 +143,11 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         index=notary_sheet_index,
                         inherit_from_before=True,
                     )
-                    worksheet.update_cell(index, comment_col_index, "New Notary added")
+                    worksheet.update_cell(index, comment_column_index, "New Notary added")
                     all_row_with_same_email.append(notary_sheet_index)
 
                 if annuraie_sheet_row[10] == "Not cooperating":
-                    worksheet.update_cell(index, comment_col_index, "Not cooperating")
+                    worksheet.update_cell(index, comment_column_index, "Not cooperating")
                     continue
                 contact_date = annuraie_sheet_row[11]
                 user.print_details()
@@ -206,61 +206,66 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     sleep(2)
                     previous_scheduled_date = annuraie_sheet_row[11]
                     all_scheduled_data = scheduling_worksheet.get_all_values()
-                    for scheduled_data in all_scheduled_data[::-1]:
-                        if (
-                            notary_email in scheduled_data
-                            and scheduled_data[3] == "Scheduled"
-                        ):
-                            previous_scheduled_date = scheduled_data[9]
-                            break
-                    try:
-                        new_date = datetime.strptime(
-                            previous_scheduled_date, "%d-%b-%Y"
-                        ) + relativedelta(months=+2)
-                    except:
-                        new_date = datetime.now().date() + relativedelta(months=+2)
+                    all_scheduled_cases = [unidecode(row[4]).lower() for row in all_scheduled_data]
+                    if unidecode(person_full_name).lower() not in all_scheduled_cases:
+                        for scheduled_data in all_scheduled_data[::-1]:
+                            if (
+                                notary_email in scheduled_data
+                                and scheduled_data[3] == "Scheduled"
+                            ):
+                                previous_scheduled_date = scheduled_data[9]
+                                break
+                        try:
+                            new_date = datetime.strptime(
+                                previous_scheduled_date, "%d-%b-%Y"
+                            ) + relativedelta(months=+2)
+                        except:
+                            new_date = datetime.now().date() + relativedelta(months=+2)
 
-                    if new_date.weekday() == 5:
-                        new_date += relativedelta(days=2)
-                    elif new_date.weekday() == 6:
-                        new_date += relativedelta(days=1)
+                        if new_date.weekday() == 5:
+                            new_date += relativedelta(days=2)
+                        elif new_date.weekday() == 6:
+                            new_date += relativedelta(days=1)
 
-                    try:
-                        previous_sender = annuraie_sheet_row[15]
-                        if not previous_sender:
+                        try:
+                            previous_sender = annuraie_sheet_row[17]
+                            if not previous_sender:
+                                previous_sender = user.email
+                        except:
                             previous_sender = user.email
-                    except:
-                        previous_sender = user.email
-                    new_date_text = new_date.strftime("%d-%b-%Y")
-                    next_row = len(all_scheduled_data) + 1
-                    notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(1; ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}); 0)); "")"
-                    last_case_formula = f"""=IFNA(INDIRECT("E" & MAX(FILTER(Row(INDIRECT("I1:I" & ROW()-1)); INDIRECT("I1:I" & ROW()-1)=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!O:O; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))"""
-                    new_schedule_row = [
-                        notary_first_name,
-                        notary_last_name,
-                        None,
-                        "Scheduled",
-                        person_full_name,
-                        person_don,
-                        None,
-                        previous_sender,
-                        notary_email,
-                        None,
-                    ]
-                    scheduling_worksheet.insert_row(
-                        new_schedule_row,
-                        index=next_row,
-                        inherit_from_before=True,
-                    )
-                    sleep(1)
-                    scheduling_worksheet.update_acell(
-                        f"C{next_row}", notary_status_formula
-                    )
-                    scheduling_worksheet.update_acell(f"G{next_row}", last_case_formula)
-                    scheduling_worksheet.update_acell(f"J{next_row}", new_date_text)
-                    worksheet.update_cell(index, status_col_index, "draft")
-                    worksheet.update_cell(index, comment_col_index, f"Scheduled on {new_date_text}")
-                    print(f"Scheduled on {new_date_text}")
+                        new_date_text = new_date.strftime("%d-%b-%Y")
+                        next_row = len(all_scheduled_data) + 1
+                        notary_status_formula = f"=IFERROR(INDEX('Notaire annuaire'!K:K; MATCH(1; ('Notaire annuaire'!B:B=A{next_row}) * ('Notaire annuaire'!C:C=B{next_row}); 0)); "")"
+                        last_case_formula = f"""=IFNA(INDIRECT("E" & MAX(FILTER(Row(INDIRECT("I1:I" & ROW()-1)); INDIRECT("I1:I" & ROW()-1)=I{next_row}))); IFERROR(INDEX('Notaire annuaire'!O:O; MATCH(I{next_row}; 'Notaire annuaire'!J:J; 0);1)))"""
+                        new_schedule_row = [
+                            notary_first_name,
+                            notary_last_name,
+                            None,
+                            "Scheduled",
+                            person_full_name,
+                            person_don,
+                            None,
+                            previous_sender,
+                            notary_email,
+                            None,
+                        ]
+                        scheduling_worksheet.insert_row(
+                            new_schedule_row,
+                            index=next_row,
+                            inherit_from_before=True,
+                        )
+                        sleep(1)
+                        scheduling_worksheet.update_acell(
+                            f"C{next_row}", notary_status_formula
+                        )
+                        scheduling_worksheet.update_acell(f"G{next_row}", last_case_formula)
+                        scheduling_worksheet.update_acell(f"J{next_row}", new_date_text)
+                        worksheet.update_cell(index, status_col_index, "draft")
+                        worksheet.update_cell(index, comment_column_index, f"Scheduled on {new_date_text}")
+                        print(f"Scheduled on {new_date_text}")
+                    else:
+                        worksheet.update_cell(index, comment_column_index, f"Already scheduled")
+                        print(f"Already scheduled")
                 countdown("Next",5)
         except Exception as e:
             print(e)
