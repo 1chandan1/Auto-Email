@@ -209,9 +209,14 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     previous_scheduled_date = annuraie_sheet_row[11]
                     all_scheduled_data = scheduling_worksheet.get_all_values()
                     all_scheduled_cases = [
-                        unidecode(row[4]).lower() for row in all_scheduled_data
+                        unidecode(row[4]).lower().replace(",","").replace(" ","") for row in all_scheduled_data
                     ]
-                    if unidecode(person_full_name).lower() not in all_scheduled_cases:
+                    all_annuraie_cases = [
+                        unidecode(row[14]).lower().replace(",","").replace(" ","") for row in all_annuraie_data
+                    ]
+                    all_cases = all_annuraie_cases + all_scheduled_cases
+                    name_for_checking = unidecode(person_full_name).lower().replace(",","").replace(" ","")
+                    if name_for_checking not in all_cases:
                         for scheduled_data in all_scheduled_data[::-1]:
                             if notary_email in scheduled_data:
                                 previous_scheduled_date = scheduled_data[9]
