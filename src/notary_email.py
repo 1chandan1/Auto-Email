@@ -80,7 +80,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
             if row["Status"] == "à envoyer":
                 all_annuraie_data = annuraie_worksheet.get_all_values()
                 notary_email = str(row["Email"]).strip().split("\n")[0].strip()
-                person_full_name = str(unidecode(row["Name"])).strip()
+                person_full_name = str(row["Name"]).strip()
                 _, person_last_name = get_fname_lname(person_full_name)
                 notary_full_name = str(unidecode(row["Notary"])).strip()
                 notary_first_name, notary_last_name = get_fname_lname(notary_full_name)
