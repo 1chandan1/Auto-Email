@@ -268,17 +268,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
             print(e)
             countdown("Next", 5)
 
-def read_data_in_batches(worksheet, batch_size=10000):
-    all_data = []
-    total_rows = worksheet.row_count
-    for start_row in range(1, total_rows + 1, batch_size):
-        print(start_row)
-        end_row = min(start_row + batch_size - 1, total_rows)
-        cell_range = f"A{start_row}:Z{end_row}"
-        data = worksheet.get(cell_range)
-        all_data.extend(data)
-    return all_data
-
 def get_all_cases(all_annuraie_data, all_scheduled_data):
     all_scheduled_cases = [
         re.sub(r"[ ,\-\n]", "", unidecode(row[4]).lower().strip())
