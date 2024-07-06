@@ -292,7 +292,9 @@ def get_fname_lname(full_name: str):
     lname = (
         " ".join([word for word in words if word.isupper() or word.lower() == "de"])
     ).upper()
-    fname = full_name.replace(lname, "").strip()
+    fname = (
+        " ".join([word for word in words if word.islower() and word != "de"])
+    )
     return fname, lname
 
 
