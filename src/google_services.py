@@ -33,8 +33,7 @@ class GoogleServices:
         self.phone = None
         self.charge = None
         self.gc = None
-        self.login()
-        self.signature = self.get_signature()
+        self.signature = None
 
     def login(self):
         self.google_auth()
@@ -69,6 +68,7 @@ class GoogleServices:
                 for i in self.interns:
                     print(f"  {i}   ({self.interns[i]['Email']})")
                 print()
+        self.signature = self.get_signature()
 
     def google_auth(self, new=False):
         """This will help to create service for the object"""

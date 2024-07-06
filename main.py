@@ -39,6 +39,7 @@ def start(user: GoogleServices):
 def main():
     locale.setlocale(locale.LC_TIME, "fr_FR")
     user = GoogleServices()
+    user.login()
     start(user)
 
 
