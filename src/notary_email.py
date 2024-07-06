@@ -110,6 +110,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 if not notary_sheet_index:
                     temp_status = "Not contacted"
                     temp_date = None
+                    temp_first_case = None
                     if all_row_with_same_email:
                         try:
                             temp_row = annuraie_worksheet.row_values(
@@ -117,6 +118,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             )
                             temp_status = temp_row[10]
                             temp_date = temp_row[11]
+                            temp_first_case = temp_row[14]
                         except:
                             pass
                     annuraie_sheet_row = [
@@ -132,6 +134,9 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         notary_email,
                         temp_status,
                         temp_date,
+                        None,
+                        None,
+                        temp_first_case
                     ]
                     annuraie_updated_row = annuraie_worksheet.append_row(
                         annuraie_sheet_row, value_input_option="USER_ENTERED"
