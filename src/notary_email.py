@@ -142,7 +142,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         temp_first_case
                     ]
                     annuraie_updated_row = annuraie_worksheet.append_row(
-                        annuraie_sheet_row, value_input_option="USER_ENTERED", table_range='A:A'
+                        annuraie_sheet_row[1:], value_input_option="USER_ENTERED", table_range='B2:R'
                     )
                     all_annuraie_data.append(annuraie_sheet_row)
                     updated_range = annuraie_updated_row["updates"]["updatedRange"]
@@ -263,7 +263,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             new_date_text,
                         ]
                         scheduling_worksheet.append_row(
-                            new_schedule_row, value_input_option="USER_ENTERED",table_range='A:A'
+                            new_schedule_row, value_input_option="USER_ENTERED",table_range='A:J'
                         )
                         all_scheduled_data.append(new_schedule_row)
                         worksheet.update_cell(
