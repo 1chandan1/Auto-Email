@@ -102,64 +102,53 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     )
                     continue
 
-                all_row_with_same_email = [
-                    index
-                    for index, sublist in enumerate(all_annuraie_data, start=1)
-                    if notary_email in sublist
-                ]
-                notary_sheet_index, annuraie_sheet_row = get_row_by_name(
+                
+                notary_sheet_index = find_row_by_name(
                     all_annuraie_data, notary_first_name, notary_last_name
                 )
-                if not notary_sheet_index:
-                    temp_status = "Not contacted"
-                    temp_date = None
-                    temp_first_case = None
-                    if all_row_with_same_email:
-                        try:
-                            temp_row = annuraie_worksheet.row_values(
-                                all_row_with_same_email[0]
-                            )
-                            temp_status = temp_row[10]
-                            temp_date = temp_row[11]
-                            temp_first_case = temp_row[14]
-                        except:
-                            pass
-                    annuraie_sheet_row = [
-                        None,
+                
+                
+                if notary_sheet_index:
+                    annuraie_worksheet.update_acell(f"I{notary_sheet_index}", notary_email)
+                    all_annuraie_data[notary_sheet_index - 1][8] = notary_email
+                    
+                email_row_indices = find_rows_by_email(all_annuraie_data, notary_email)
+                notary_status, contact_date, first_case = get_status_date_case(all_annuraie_data, email_row_indices)
+                
+                
+                if not notary_sheet_index:  
+                    new_row = [
                         notary_first_name,
                         notary_last_name,
-                        None,
-                        None,
-                        None,
-                        None,
+                        "","","","",
                         row["Phone"],
-                        None,
+                        "",
                         notary_email,
-                        temp_status,
-                        temp_date,
-                        None,
-                        None,
-                        temp_first_case
+                        notary_status,
+                        contact_date,"","","",
                     ]
                     annuraie_updated_row = annuraie_worksheet.append_row(
-                        annuraie_sheet_row[1:], value_input_option="USER_ENTERED", table_range='B2:R'
+                        new_row, value_input_option="USER_ENTERED", table_range='A:A'
                     )
-                    all_annuraie_data.append(annuraie_sheet_row)
                     updated_range = annuraie_updated_row["updates"]["updatedRange"]
                     notary_sheet_index = extract_row_number(updated_range)
+                    all_annuraie_data.append(new_row)
+                    email_row_indices.append(notary_sheet_index)
                     worksheet.update_cell(
                         index, comment_column_index, "New Notary added"
                     )
-                    all_row_with_same_email.append(notary_sheet_index)
+                    
+                if notary_sheet_index:
+                    annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_status)
+                    annuraie_worksheet.update_acell(f"K{notary_sheet_index}", contact_date)
+                    annuraie_worksheet.update_acell(f"N{notary_sheet_index}", first_case)
+                    annuraie_worksheet.update_acell(f"Q{notary_sheet_index}", user.email)
+                    all_annuraie_data[notary_sheet_index - 1][9] = notary_status
+                    all_annuraie_data[notary_sheet_index - 1][10] = contact_date
+                    all_annuraie_data[notary_sheet_index - 1][13] = first_case
+            
+                annuraie_sheet_row = all_annuraie_data[notary_sheet_index - 1]
                 
-                notary_status = annuraie_sheet_row[10]
-                
-                if notary_status == "Not cooperating":
-                    worksheet.update_cell(
-                        index, comment_column_index, "Not cooperating"
-                    )
-                    continue
-                contact_date = annuraie_sheet_row[11]
                 user.print_details()
                 print_center("Notary Email")
                 print()
@@ -175,7 +164,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 print(f"Notary Last Name  :    {notary_last_name}\n")
                 print(f"DON               :    {person_don}")
                 print(f"To                :    {notary_email}\n")
-                annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_email)
                 
                 
                 name_for_checking = re.sub(
@@ -184,7 +172,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 if name_for_checking not in all_cases:
                     all_cases.append(name_for_checking)
                     if notary_status == "Not contacted":
-                        countdown("Sending Email in", random.randint(120, 180))
+                        # countdown("Sending Email in", random.randint(120, 180))
                         print("\nSending Email...")
                         status = None
                         for _ in range(3):
@@ -204,17 +192,18 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         if status:
                             worksheet.update_cell(index, status_col_index, "envoyé")
                             today_date = datetime.now().date().strftime("%d-%b-%Y")
-                            for row_index in all_row_with_same_email:
-                                annuraie_worksheet.update_acell(f"L{row_index}", today_date)
-                                annuraie_worksheet.update_acell(
-                                    f"K{row_index}", "Contacted / pending answer"
-                                )
-                                annuraie_worksheet.update_acell(
-                                    f"O{row_index}", person_full_name
-                                )
-                                annuraie_worksheet.update_acell(f"R{row_index}", user.email)
-                                all_annuraie_data[row_index-1][10] = "Contacted / pending answer"
-                                all_annuraie_data[row_index-1][11] = today_date
+
+                            annuraie_worksheet.update_acell(f"K{notary_sheet_index}", today_date)
+                            annuraie_worksheet.update_acell(
+                                f"J{notary_sheet_index}", "Contacted / pending answer"
+                            )
+                            annuraie_worksheet.update_acell(
+                                f"N{notary_sheet_index}", person_full_name
+                            )
+                            annuraie_worksheet.update_acell(f"Q{ notary_sheet_index }", user.email)
+                            all_annuraie_data[notary_sheet_index - 1][9] = "Contacted / pending answer"
+                            all_annuraie_data[notary_sheet_index - 1][10] = today_date
+                            all_annuraie_data[notary_sheet_index - 1][13] = person_full_name
                             print("\nSuccess")
                         else:
                             worksheet.update_cell(
@@ -227,7 +216,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     ):
                         print("Scheduling Email")
                         sleep(2)
-                        previous_scheduled_date = annuraie_sheet_row[11]
+                        previous_scheduled_date = annuraie_sheet_row[10]
                         new_date_text = None
                         if notary_status == "Cooperating":
                             for scheduled_data in all_scheduled_data[::-1]:
@@ -263,7 +252,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             new_date_text,
                         ]
                         scheduling_worksheet.append_row(
-                            new_schedule_row, value_input_option="USER_ENTERED",table_range='A:J'
+                            new_schedule_row, value_input_option="USER_ENTERED",table_range='A:A'
                         )
                         all_scheduled_data.append(new_schedule_row)
                         worksheet.update_cell(
@@ -273,6 +262,10 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         )
                         worksheet.update_cell(index, status_col_index, "draft")
                         print(f"Scheduled {new_date_text}")
+                    elif notary_status == "Not cooperating":
+                        worksheet.update_cell(
+                            index, comment_column_index, "Not cooperating"
+                        )
                 else:
                     worksheet.update_cell(index, status_col_index, "draft")
                     worksheet.update_cell(
@@ -284,13 +277,14 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
             print(e)
             countdown("Next", 5)
 
+
 def get_all_cases(all_annuraie_data, all_scheduled_data):
     all_scheduled_cases = [
         re.sub(r"[ ,\-\n]", "", unidecode(row[4]).lower().strip())
         for row in all_scheduled_data
     ]
     all_annuraie_cases = [
-        re.sub(r"[ ,\-\n]", "", unidecode(row[14]).lower().strip())
+        re.sub(r"[ ,\-\n]", "", unidecode(row[13]).lower().strip())
         for row in all_annuraie_data
     ]
     all_cases = list(set(all_annuraie_cases + all_scheduled_cases))
@@ -325,17 +319,39 @@ def is_valid_email(email):
         return False
 
 
-def get_row_by_name(annuraie_data: list[list], first_name: str, last_name: str):
+def find_row_by_name(annuraie_data: list[list], first_name: str, last_name: str):
     pattern = r"[ ,\-\n]"
     first_name = unidecode(re.sub(pattern, "", first_name)).lower()
     last_name = unidecode(re.sub(pattern, "", last_name)).lower()
     for index, row in enumerate(annuraie_data, start=1):
         if (
-            first_name == unidecode(re.sub(pattern, "", row[1])).lower()
-            and last_name == unidecode(re.sub(pattern, "", row[2])).lower()
+            first_name == unidecode(re.sub(pattern, "", row[0])).lower()
+            and last_name == unidecode(re.sub(pattern, "", row[1])).lower()
         ):
-            return index, row
-    return None, None
+            return index
+    return None
+
+def find_rows_by_email(data, email):
+    return [
+        index
+        for index, sublist in enumerate(data, start=1)
+        if email in sublist
+    ]
+
+def get_status_date_case(data, row_indices):
+    if row_indices:
+        first_index = row_indices[0] - 1
+        all_status = [ data[index - 1][9] for index in row_indices ] 
+        all_date = [ data[index - 1][10] for index in row_indices ] 
+        all_case = [ data[index - 1][13] for index in row_indices ] 
+        if "Cooperating" in all_status:
+            return "Collègue coopérant", max(all_date), max(all_case)
+        
+        if "Not cooperating" in all_status:
+            return "Not cooperating", None, None
+        return data[first_index][9], max(all_date), max(all_case)
+    else:
+        return "Not contacted", None, None
 
 
 def create_notary_message(
