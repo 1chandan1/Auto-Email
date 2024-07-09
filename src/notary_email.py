@@ -172,7 +172,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 if name_for_checking not in all_cases:
                     all_cases.append(name_for_checking)
                     if notary_status == "Not contacted":
-                        # countdown("Sending Email in", random.randint(120, 180))
+                        countdown("Sending Email in", random.randint(120, 180))
                         print("\nSending Email...")
                         status = None
                         for _ in range(3):
