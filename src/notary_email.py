@@ -121,11 +121,11 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         notary_first_name,
                         notary_last_name,
                         "","","","",
-                        row["Phone"],
-                        "",
+                        row["Phone"],"",
                         notary_email,
                         notary_status,
-                        "","","","",
+                        "","","","","",
+                        "",user.email
                     ]
                     annuraie_updated_row = annuraie_worksheet.append_row(
                         new_row, value_input_option="USER_ENTERED", table_range='A:A'
@@ -138,10 +138,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         index, comment_column_index, "New Notary added"
                     )
                     
-                if notary_sheet_index:
-                    annuraie_worksheet.update_acell(f"J{notary_sheet_index}", notary_status)
-                    annuraie_worksheet.update_acell(f"Q{notary_sheet_index}", user.email)
-                    all_annuraie_data[notary_sheet_index - 1][9] = notary_status
             
                 annuraie_sheet_row = all_annuraie_data[notary_sheet_index - 1]
                 
