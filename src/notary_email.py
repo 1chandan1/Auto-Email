@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import random
 import re
+import sys
 from googleapiclient.errors import HttpError
 from gspread.exceptions import SpreadsheetNotFound
 from dateutil.relativedelta import relativedelta
@@ -53,8 +54,9 @@ def notary_email(user: GoogleServices):
             user.print_details()
             print_center("Notary Email")
             print()
-            input("\n\nTask Completed\nPress Enter To Continue : ")
-            break
+            print("\n\nTask Completed")
+            countdown("Exit", 5)
+            sys.exit()
         elif choice == "2":
             notary_email(user)
             break
