@@ -109,10 +109,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                     all_annuraie_data, notary_first_name, notary_last_name
                 )
                 
-                
-                if notary_sheet_index:
-                    annuraie_worksheet.update_acell(f"I{notary_sheet_index}", notary_email)
-                    all_annuraie_data[notary_sheet_index - 1][8] = notary_email
                     
                 email_row_indices = find_rows_by_email(all_annuraie_data, notary_email)
                 notary_status = get_status(all_annuraie_data, email_row_indices)
