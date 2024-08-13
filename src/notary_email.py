@@ -237,7 +237,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             person_don,
                             None,
                             user.email,
-                            notary_email,
+                            None,
                             new_date_text,
                         ]
                         scheduling_worksheet.append_row(
