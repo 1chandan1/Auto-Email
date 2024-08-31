@@ -232,7 +232,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             notary_first_name,
                             notary_last_name,
                             None,
-                            "Scheduled",
+                            "Scheduled" if new_date_text else None,
                             person_full_name,
                             person_don,
                             None,
