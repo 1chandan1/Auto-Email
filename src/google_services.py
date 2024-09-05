@@ -116,15 +116,20 @@ class GoogleServices:
 
         interns_dict = {}
         for intern in interns_data:
-            interns_dict[intern["Gmail"]] = {
-                "Name": intern["Name"],
-                "Phone": intern["Phone"],
-                "Email": intern["Email"],
-                "Charge": intern["Charge"],
-                "Image": intern["Image"],
-                "Calendly": intern["Calendly"],
-            }
+            gmail = intern["Gmail"]
+            # Check if the Gmail key already exists in the dictionary
+            if gmail not in interns_dict:
+                interns_dict[gmail] = {
+                    "Name": intern["Name"],
+                    "Phone": intern["Phone"],
+                    "Email": intern["Email"],
+                    "Charge": intern["Charge"],
+                    "Image": intern["Image"],
+                    "Calendly": intern["Calendly"],
+                }
+                
         return interns_dict
+
 
     def get_user_email(self):
         try:
