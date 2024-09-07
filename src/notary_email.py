@@ -235,7 +235,6 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             "Scheduled" if new_date_text else None,
                             person_full_name,
                             person_don,
-                            None,
                             user.email,
                             None,
                             new_date_text,
