@@ -19,6 +19,40 @@ from src.google_services import GoogleServices
 from src.utils import countdown, getch, print_center
 
 
+holidayDates = [
+    # 2024
+    "01-janv.-2024", "29-mars-2024", "01-avr.-2024", "01-mai-2024", "08-mai-2024", "09-mai-2024", "19-mai-2024",
+    "20-mai-2024", "14-juil.-2024", "15-août-2024", "01-nov.-2024", "11-nov.-2024", "25-déc.-2024", "26-déc.-2024",
+
+    # 2025
+    "01-janv.-2025", "18-avr.-2025", "21-avr.-2025", "01-mai-2025", "08-mai-2025", "29-mai-2025", "08-juin-2025",
+    "09-juin-2025", "14-juil.-2025", "15-août-2025", "01-nov.-2025", "11-nov.-2025", "25-déc.-2025", "26-déc.-2025",
+
+    # 2026
+    "01-janv.-2026", "03-avr.-2026", "06-avr.-2026", "01-mai-2026", "08-mai-2026", "14-mai-2026", "24-mai-2026",
+    "25-mai-2026", "14-juil.-2026", "15-août-2026", "01-nov.-2026", "11-nov.-2026", "25-déc.-2026", "26-déc.-2026",
+
+    # 2027
+    "01-janv.-2027", "26-mars-2027", "29-mars-2027", "01-mai-2027", "08-mai-2027", "06-mai-2027", "16-mai-2027",
+    "17-mai-2027", "14-juil.-2027", "15-août-2027", "01-nov.-2027", "11-nov.-2027", "25-déc.-2027", "26-déc.-2027",
+
+    # 2028
+    "01-janv.-2028", "14-avr.-2028", "17-avr.-2028", "01-mai-2028", "08-mai-2028", "25-mai-2028", "04-juin-2028",
+    "05-juin-2028", "14-juil.-2028", "15-août-2028", "01-nov.-2028", "11-nov.-2028", "25-déc.-2028", "26-déc.-2028",
+
+    # 2029
+    "01-janv.-2029", "30-mars-2029", "02-avr.-2029", "01-mai-2029", "08-mai-2029", "10-mai-2029", "20-mai-2029",
+    "21-mai-2029", "14-juil.-2029", "15-août-2029", "01-nov.-2029", "11-nov.-2029", "25-déc.-2029", "26-déc.-2029",
+
+    # 2030
+    "01-janv.-2030", "19-avr.-2030", "22-avr.-2030", "01-mai-2030", "08-mai-2030", "30-mai-2030", "09-juin-2030",
+    "10-juin-2030", "14-juil.-2030", "15-août-2030", "01-nov.-2030", "11-nov.-2030", "25-déc.-2030", "26-déc.-2030"
+  ]
+
+# Convert holiday strings to datetime objects
+HOLIDAY_DATES = [datetime.strptime(date, "%d-%b-%Y").date() for date in holidayDates]
+
+
 def notary_email(user: GoogleServices):
     user.print_details()
     print_center("Notary Email")
@@ -207,25 +241,28 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         sleep(2)
                         previous_scheduled_date = annuraie_sheet_row[10]
                         new_date_text = None
-                        if notary_status == "Cooperating":
+
+                        # Define your logic to calculate new_date
+                        if notary_status == "Cooperating" or notary_status == "Collègue coopérant":
                             for scheduled_data in all_scheduled_data[::-1]:
                                 if notary_email in scheduled_data:
                                     previous_scheduled_date = scheduled_data[9]
                                     break
                             try:
-                                new_date = datetime.strptime(
-                                    previous_scheduled_date, "%d-%b-%Y"
-                                ) + relativedelta(months=+2)
+                                new_date = datetime.strptime(previous_scheduled_date, "%d-%b-%Y").date() + relativedelta(months=+2)
                             except:
-                                new_date = datetime.now().date() + relativedelta(
-                                    months=+2
-                                )
+                                new_date = datetime.now().date() + relativedelta(months=+2)
 
-                            if new_date.weekday() == 5:
-                                new_date += relativedelta(days=2)
-                            elif new_date.weekday() == 6:
-                                new_date += relativedelta(days=1)
-
+                            # Check if new_date falls on a weekend or holiday, and adjust accordingly
+                            while new_date.weekday() in (5, 6) or new_date in HOLIDAY_DATES:
+                                if new_date.weekday() == 5:  # Saturday
+                                    new_date += relativedelta(days=2)
+                                elif new_date.weekday() == 6:  # Sunday
+                                    new_date += relativedelta(days=1)
+                                elif new_date in HOLIDAY_DATES:  # Holiday
+                                    new_date += relativedelta(days=1)
+                            
+                            # Convert new_date to the required format
                             new_date_text = new_date.strftime("%d-%b-%Y")
 
                         new_schedule_row = [
@@ -328,9 +365,8 @@ def find_rows_by_email(data, email):
 
 def get_status(data, row_indices):
     if row_indices:
-        first_index = row_indices[0] - 1
         all_status = [ data[index - 1][9] for index in row_indices ] 
-        if "Cooperating" in all_status:
+        if "Cooperating" in all_status or "Collègue coopérant" in all_status:
             return "Collègue coopérant"
         
         elif "Not cooperating" in all_status:
@@ -368,3 +404,4 @@ def create_notary_message(
     message.attach(MIMEText(message_html + user.signature, "html"))
 
     return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")}
+
