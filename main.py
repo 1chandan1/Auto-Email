@@ -3,6 +3,7 @@ from src.vcs import check_for_updates
 check_for_updates()
 
 import locale
+locale.setlocale(locale.LC_TIME, "fr_FR")
 
 from src.client_email import client_email
 from src.facturation import facturation
@@ -37,7 +38,6 @@ def start(user: GoogleServices):
 
 
 def main():
-    locale.setlocale(locale.LC_TIME, "fr_FR")
     user = GoogleServices()
     user.login()
     start(user)
