@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import shutil
@@ -37,6 +38,20 @@ def getch():
     else:
         return pygetch().lower()
 
+def is_valid_email(email):
+    # Regular expression pattern for validating an email
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    # Match the pattern with the email
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+
+def get_id_from_url(url):
+    if url:
+        match = re.search(r'[-\w]{25,}', url)
+        return match.group(0) if match else None
+    return None
 
 def get_client_secret():
     client_secret = os.environ["CLIENT_SECRET"]

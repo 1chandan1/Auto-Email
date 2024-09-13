@@ -2,6 +2,8 @@ import base64
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+import io
 import random
 import re
 import sys
@@ -16,41 +18,10 @@ from time import sleep
 from unidecode import unidecode
 from src.constants import *
 from src.google_services import GoogleServices
-from src.utils import countdown, getch, print_center
+from src.utils import *
 
-
-holidayDates = [
-    # 2024
-    "01-janv.-2024", "29-mars-2024", "01-avr.-2024", "01-mai-2024", "08-mai-2024", "09-mai-2024", "19-mai-2024",
-    "20-mai-2024", "14-juil.-2024", "15-août-2024", "01-nov.-2024", "11-nov.-2024", "25-déc.-2024", "26-déc.-2024",
-
-    # 2025
-    "01-janv.-2025", "18-avr.-2025", "21-avr.-2025", "01-mai-2025", "08-mai-2025", "29-mai-2025", "08-juin-2025",
-    "09-juin-2025", "14-juil.-2025", "15-août-2025", "01-nov.-2025", "11-nov.-2025", "25-déc.-2025", "26-déc.-2025",
-
-    # 2026
-    "01-janv.-2026", "03-avr.-2026", "06-avr.-2026", "01-mai-2026", "08-mai-2026", "14-mai-2026", "24-mai-2026",
-    "25-mai-2026", "14-juil.-2026", "15-août-2026", "01-nov.-2026", "11-nov.-2026", "25-déc.-2026", "26-déc.-2026",
-
-    # 2027
-    "01-janv.-2027", "26-mars-2027", "29-mars-2027", "01-mai-2027", "08-mai-2027", "06-mai-2027", "16-mai-2027",
-    "17-mai-2027", "14-juil.-2027", "15-août-2027", "01-nov.-2027", "11-nov.-2027", "25-déc.-2027", "26-déc.-2027",
-
-    # 2028
-    "01-janv.-2028", "14-avr.-2028", "17-avr.-2028", "01-mai-2028", "08-mai-2028", "25-mai-2028", "04-juin-2028",
-    "05-juin-2028", "14-juil.-2028", "15-août-2028", "01-nov.-2028", "11-nov.-2028", "25-déc.-2028", "26-déc.-2028",
-
-    # 2029
-    "01-janv.-2029", "30-mars-2029", "02-avr.-2029", "01-mai-2029", "08-mai-2029", "10-mai-2029", "20-mai-2029",
-    "21-mai-2029", "14-juil.-2029", "15-août-2029", "01-nov.-2029", "11-nov.-2029", "25-déc.-2029", "26-déc.-2029",
-
-    # 2030
-    "01-janv.-2030", "19-avr.-2030", "22-avr.-2030", "01-mai-2030", "08-mai-2030", "30-mai-2030", "09-juin-2030",
-    "10-juin-2030", "14-juil.-2030", "15-août-2030", "01-nov.-2030", "11-nov.-2030", "25-déc.-2030", "26-déc.-2030"
-  ]
-
-# Convert holiday strings to datetime objects
-HOLIDAY_DATES = [datetime.strptime(date, "%d-%b-%Y").date() for date in holidayDates]
+import locale
+locale.setlocale(locale.LC_TIME, "fr_FR")
 
 
 def notary_email(user: GoogleServices):
@@ -97,10 +68,13 @@ def notary_email(user: GoogleServices):
         elif choice == "q":
             break
     sleep(0.1)
-
-
+ 
+ 
 def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     annuraie_sheet = user.gc.open_by_key(ANNUAIRE_SHEET_KEY)
+    death_certificates_sheet = user.gc.open_by_key(DEATH_CERTIFICATES_SHEET_KEY)
+    death_certificates_worksheet = death_certificates_sheet.get_worksheet_by_id(0)
+    all_image_data = death_certificates_worksheet.get_all_values()
     annuraie_worksheet = annuraie_sheet.worksheet(ANNUAIRE_WORKSHEET_NAME)
     scheduling_worksheet = annuraie_sheet.worksheet(SCHEDULED_WORKSHEET_NAME)
     worksheet = spreadsheet.get_worksheet(0)
@@ -192,6 +166,13 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 name_for_checking = re.sub(
                     r"[ ,\-\n]", "", unidecode(person_full_name).lower().strip()
                 )
+                
+                image_data = image_name = None
+                image_link = get_image_url_by_name(name_for_checking, all_image_data)
+                image_id = get_id_from_url(image_link)
+                if image_id:
+                    image_data, image_name = user.download_file(image_id)
+                    
                 if name_for_checking not in all_cases:
                     all_cases.append(name_for_checking)
                     if notary_status == "Not contacted":
@@ -206,6 +187,8 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                                 person_last_name,
                                 notary_last_name,
                                 person_don,
+                                image_data,
+                                image_name
                             )
                             status = user.send_email(message)
                             if status:
@@ -244,13 +227,29 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
 
                         # Define your logic to calculate new_date
                         if notary_status == "Cooperating" or notary_status == "Collègue coopérant":
-                            for scheduled_data in all_scheduled_data[::-1]:
-                                if notary_email in scheduled_data:
-                                    previous_scheduled_date = scheduled_data[9]
-                                    break
+                            # List to store all previous scheduled dates
+                            previous_dates = []
                             try:
-                                new_date = datetime.strptime(previous_scheduled_date, "%d-%b-%Y").date() + relativedelta(months=+2)
+                                previous_dates.append(datetime.strptime(previous_scheduled_date, "%d-%b-%Y").date())
                             except:
+                                pass
+                            
+                            for scheduled_data in all_scheduled_data:
+                                if notary_email in scheduled_data:
+                                    try:
+                                        # Extract the date and append to the list
+                                        previous_scheduled_date = datetime.strptime(scheduled_data[9], "%d-%b-%Y").date()
+                                        previous_dates.append(previous_scheduled_date)
+                                    except:
+                                        # Handle any issues with date parsing, skip if invalid
+                                        continue
+
+                            # Get the maximum date from the list of previous dates if available
+                            if previous_dates:
+                                max_previous_date = max(previous_dates)
+                                new_date = max_previous_date + relativedelta(months=+2)
+                            else:
+                                # Fallback if no previous dates are found
                                 new_date = datetime.now().date() + relativedelta(months=+2)
 
                             # Check if new_date falls on a weekend or holiday, and adjust accordingly
@@ -275,6 +274,10 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                             user.email,
                             None,
                             new_date_text,
+                            None,
+                            None,
+                            None,
+                            image_link
                         ]
                         scheduling_worksheet.append_row(
                             new_schedule_row, value_input_option="USER_ENTERED",table_range='A:A'
@@ -334,16 +337,6 @@ def get_fname_lname(full_name: str):
     return fname, lname
 
 
-def is_valid_email(email):
-    # Regular expression pattern for validating an email
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    # Match the pattern with the email
-    if re.match(pattern, email):
-        return True
-    else:
-        return False
-
-
 def find_row_by_name(annuraie_data: list[list], first_name: str, last_name: str):
     pattern = r"[ ,\-\n]"
     first_name = unidecode(re.sub(pattern, "", first_name)).lower()
@@ -388,20 +381,81 @@ def create_notary_message(
     person_last_name: str,
     notary_last_name: str,
     person_don: str,
+    attachment: io.BytesIO = None,  # attachment is io.BytesIO
+    attachment_filename: str = None,  # Provide the filename separately
 ):
     message = MIMEMultipart()
     message["From"] = f"Klero Genealogie <{user.email}>"
     message["To"] = to
     message["Subject"] = f"Succession {person_last_name} - Demande de mise en relation"
+    
+    if attachment and attachment_filename:
+        template_path = NOTARY_EMAIL_TEMPLATE2_PATH
+    else:
+        template_path = NOTARY_EMAIL_TEMPLATE1_PATH
 
-    with open(NOTARY_EMAIL_TEMPLATE_PATH, "r", encoding="utf-8") as file:
+    with open(template_path, "r", encoding="utf-8") as file:
         html_template = file.read()
-    message_html = html_template.format(
+        message_html = html_template.format(
         notary_last_name=notary_last_name,
         person_full_name=person_full_name,
-        person_don=person_don,
+        person_don=person_don
     )
+    
     message.attach(MIMEText(message_html + user.signature, "html"))
+    
+    # If an attachment is provided, attach it to the email
+    if attachment and attachment_filename:
+        # Create the attachment using MIMEApplication
+        part = MIMEApplication(attachment.read(), Name=attachment_filename)
 
+        # Add the header for the attachment
+        part.add_header(
+            "Content-Disposition", f"attachment; filename={attachment_filename}"
+        )
+
+        # Attach the file to the email
+        message.attach(part)
+    
     return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")}
 
+def get_image_url_by_name(name, all_image_data):
+    name = re.sub(r"[ ,\-\n]", "",unidecode(name).strip().lower())
+    for i in all_image_data:
+        image_name = re.sub(r"[ ,\-\n]", "",unidecode(i[0]).strip().lower())
+        if name and image_name and name in image_name:
+            return i[1]
+    return None
+
+holidayDates = [
+    # 2024
+    "01-janv.-2024", "29-mars-2024", "01-avr.-2024", "01-mai-2024", "08-mai-2024", "09-mai-2024", "19-mai-2024",
+    "20-mai-2024", "14-juil.-2024", "15-août-2024", "01-nov.-2024", "11-nov.-2024", "25-déc.-2024", "26-déc.-2024",
+
+    # 2025
+    "01-janv.-2025", "18-avr.-2025", "21-avr.-2025", "01-mai-2025", "08-mai-2025", "29-mai-2025", "08-juin-2025",
+    "09-juin-2025", "14-juil.-2025", "15-août-2025", "01-nov.-2025", "11-nov.-2025", "25-déc.-2025", "26-déc.-2025",
+
+    # 2026
+    "01-janv.-2026", "03-avr.-2026", "06-avr.-2026", "01-mai-2026", "08-mai-2026", "14-mai-2026", "24-mai-2026",
+    "25-mai-2026", "14-juil.-2026", "15-août-2026", "01-nov.-2026", "11-nov.-2026", "25-déc.-2026", "26-déc.-2026",
+
+    # 2027
+    "01-janv.-2027", "26-mars-2027", "29-mars-2027", "01-mai-2027", "08-mai-2027", "06-mai-2027", "16-mai-2027",
+    "17-mai-2027", "14-juil.-2027", "15-août-2027", "01-nov.-2027", "11-nov.-2027", "25-déc.-2027", "26-déc.-2027",
+
+    # 2028
+    "01-janv.-2028", "14-avr.-2028", "17-avr.-2028", "01-mai-2028", "08-mai-2028", "25-mai-2028", "04-juin-2028",
+    "05-juin-2028", "14-juil.-2028", "15-août-2028", "01-nov.-2028", "11-nov.-2028", "25-déc.-2028", "26-déc.-2028",
+
+    # 2029
+    "01-janv.-2029", "30-mars-2029", "02-avr.-2029", "01-mai-2029", "08-mai-2029", "10-mai-2029", "20-mai-2029",
+    "21-mai-2029", "14-juil.-2029", "15-août-2029", "01-nov.-2029", "11-nov.-2029", "25-déc.-2029", "26-déc.-2029",
+
+    # 2030
+    "01-janv.-2030", "19-avr.-2030", "22-avr.-2030", "01-mai-2030", "08-mai-2030", "30-mai-2030", "09-juin-2030",
+    "10-juin-2030", "14-juil.-2030", "15-août-2030", "01-nov.-2030", "11-nov.-2030", "25-déc.-2030", "26-déc.-2030"
+  ]
+
+# Convert holiday strings to datetime objects
+HOLIDAY_DATES = [datetime.strptime(date, "%d-%b-%Y").date() for date in holidayDates]

@@ -1,3 +1,4 @@
+import base64
 import io
 import os
 import pickle
@@ -359,8 +360,13 @@ class GoogleServices:
             print(f"An error occurred: {e}")
         fh.close()
 
-    def download_file(self, file_id: str) -> io.BytesIO | None:
+    def download_file(self, file_id: str) -> tuple[io.BytesIO | None, str | None]:
         try:
+            # Retrieve file metadata to get the filename
+            file_metadata = self.drive_service.files().get(fileId=file_id, fields="name").execute()
+            filename = file_metadata.get("name", None)
+
+            # Prepare to download the file content
             request = self.drive_service.files().get_media(fileId=file_id)
             fh = io.BytesIO()  # Using a file-like object for streaming download
             downloader = MediaIoBaseDownload(fh, request)
@@ -368,10 +374,13 @@ class GoogleServices:
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-            fh.seek(0)
-            return fh
-        except:
-            return None
+            
+            fh.seek(0)  # Reset the stream position to the beginning
+            return fh, filename  # Return the file content and filename
+        except Exception as e:
+            print(f"Error downloading file: {e}")
+            return None, None
+
 
     def move_folder(self, folder_id, from_id, to_id):
         try:
