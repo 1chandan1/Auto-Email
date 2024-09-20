@@ -84,7 +84,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     df = pd.DataFrame(rows, columns=header)
     df.index += 2
     status_col_index = df.columns.get_loc("Status") + 1
-    comment_column_index = status_col_index + 1
+    comment_column_index = status_col_index + 2
     all_annuraie_data = annuraie_worksheet.get_all_values()
     all_scheduled_data = scheduling_worksheet.get_all_values()
     all_cases = get_all_cases(all_annuraie_data, all_scheduled_data)
