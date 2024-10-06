@@ -5,8 +5,7 @@ check_for_updates()
 import locale
 locale.setlocale(locale.LC_TIME, "fr_FR")
 
-from src.client_email import client_email
-from src.facturation import facturation
+from src.undertaker_email import undertaker_email
 from src.google_services import GoogleServices
 from src.notary_email import notary_email
 from src.utils import *
@@ -15,8 +14,7 @@ from src.utils import *
 def start(user: GoogleServices):
     user.print_details()
     print("1. Notary Email")
-    print("2. Client Email")
-    print("3. Facturation")
+    print("2. Underaker Email")
     print("\nEnter your choice (1/2/3): ")
     while True:
         choice = getch()
@@ -27,11 +25,7 @@ def start(user: GoogleServices):
             break
         elif choice == "2":
             print("\nLoading...")
-            client_email(user)
-            break
-        elif choice == "3":
-            print("\nLoading...")
-            facturation(user)
+            undertaker_email(user)
             break
     sleep(0.1)
     start(user)
