@@ -90,6 +90,7 @@ def send_undertaker_emails(user: GoogleServices, spreadsheet: gspread.Spreadshee
                 undertaker_email : str = row["Email"].split("\n")[0].strip()
                 person_full_name : str = row["Name"].strip()
                 _, person_last_name = get_fname_lname(person_full_name)
+                declarant_name = row["Declarant Name"].strip()
                 person_dod  : str = row["Date Of Death"].strip()
                 if not all(
                     [
@@ -225,7 +226,7 @@ def send_undertaker_emails(user: GoogleServices, spreadsheet: gspread.Spreadshee
 
                         new_schedule_row = [
                             None,
-                            None,
+                            declarant_name,
                             None,
                             "Scheduled" if new_date_text else None,
                             person_full_name,
