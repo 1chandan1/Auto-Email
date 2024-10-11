@@ -198,19 +198,21 @@ def send_undertaker_emails(user: GoogleServices, spreadsheet: gspread.Spreadshee
                                 if undertaker_email in scheduled_data:
                                     try:
                                         # Extract the date and append to the list
-                                        previous_scheduled_date = datetime.strptime(scheduled_data[9], "%d-%b-%Y").date()
+                                        previous_scheduled_date = datetime.strptime(scheduled_data[8], "%d-%b-%Y").date()
                                         previous_dates.append(previous_scheduled_date)
                                     except:
                                         # Handle any issues with date parsing, skip if invalid
                                         continue
-
+                            today = datetime.now().date()
                             # Get the maximum date from the list of previous dates if available
                             if previous_dates:
                                 max_previous_date = max(previous_dates)
                                 new_date = max_previous_date + relativedelta(months=+2)
+                                if new_date < today:
+                                    new_date = today + relativedelta(months=+2)
                             else:
                                 # Fallback if no previous dates are found
-                                new_date = datetime.now().date() + relativedelta(months=+2)
+                                new_date = today + relativedelta(months=+2)
 
                             # Check if new_date falls on a weekend or holiday, and adjust accordingly
                             while new_date.weekday() in (5, 6) or new_date in HOLIDAY_DATES:
