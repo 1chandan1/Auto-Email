@@ -150,7 +150,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                 print_center(f"Google Sheet : {spreadsheet.title}")
                 print()
                 print_center("Sending All Emails\n\n")
-                print(f"Index-File Row    :    {notary_sheet_index}") 
+                print(f"Annuraie sheet Row    :    {notary_sheet_index}") 
                 print(f"Target Sheet Row  :    {index}\n")
                 print(f"Person Name       :    {person_full_name}")
                 print(f"Person Last Name  :    {person_last_name}\n")
@@ -217,7 +217,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
                         "Cooperating",
                         "Collègue coopérant"
                     ):
-                        print("Scheduling Email")
+                        print("Scheduling Email")   
                         sleep(2)
                         previous_scheduled_date = annuraie_sheet_row[10]
                         new_date_text = None
