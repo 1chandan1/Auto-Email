@@ -364,7 +364,7 @@ def create_notary_message(
     message = MIMEMultipart()
     message["From"] = f"Klero Genealogie <{user.email}>"
     message["To"] = to
-    message["Subject"] = f"Succession {person_last_name} - Demande de mise en relation"
+    message["Subject"] = f"Succession {person_last_name} - Transmission de nos coordonnées aux ayants droit"
     
     if attachment and attachment_filename:
         template_path = NOTARY_EMAIL_TEMPLATE2_PATH

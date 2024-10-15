@@ -377,9 +377,8 @@ def create_undertaker_message(
     message = MIMEMultipart()
     message["From"] = f"Klero Genealogie <{user.email}>"
     message["To"] = to
-    message["Subject"] = (
-        f"Obsèque {person_last_name} - Heritage non transmis - Demande de mise en relation avec la famille"
-    )
+    message["Subject"] = f"Obsèque {person_last_name} - Heritage non transmis - Demande de mise en relation avec la famille"
+    
 
     if attachment and attachment_filename:
         template_path = UNDERTAKER_EMAIL_TEMPLATE2_PATH
