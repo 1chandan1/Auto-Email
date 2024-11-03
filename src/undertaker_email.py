@@ -222,11 +222,12 @@ def send_undertaker_emails(user: GoogleServices, spreadsheet: gspread.Spreadshee
                     elif undertaker_status in (
                         "Contacted / pending answer",
                         "Cooperating",
+                        "Collègue coopérant"
                     ):
 
                         previous_scheduled_date = annuraie_sheet_row[8]
                         new_date_text = None
-                        if undertaker_status == "Cooperating":
+                        if undertaker_status == "Cooperating" or undertaker_status == "Collègue coopérant":
                             # List to store all previous scheduled dates
                             previous_dates = []
                             try:
@@ -351,8 +352,8 @@ def find_entreprise_by_email(annuraie_data, email):
 def get_status(data, row_indices):
     if row_indices:
         all_status = [data[index - 1][7] for index in row_indices]
-        if "Cooperating" in all_status:
-            return "Cooperating"
+        if "Cooperating" in all_status or "Collègue coopérant" in all_status:
+            return "Collègue coopérant"
 
         elif "Not cooperating" in all_status:
             return "Not cooperating"
