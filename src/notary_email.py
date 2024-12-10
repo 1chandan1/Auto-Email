@@ -88,7 +88,7 @@ def send_notary_emails(user: GoogleServices, spreadsheet: gspread.Spreadsheet):
     for index, row in df.iterrows():
         try:
             if row["Status"] == "à envoyer":
-                notary_email : str = row["Email"].split("\n")[0].strip()
+                notary_email : str = row["Email"].split("\n")[0].split(";")[0].strip()
                 person_full_name : str = row["Name"].strip()
                 _, person_last_name = get_fname_lname(person_full_name)
                 notary_full_name : str = re.sub(r"[ ,\-\n]", " ",unidecode(row["Notary"]).strip())
